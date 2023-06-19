@@ -1,11 +1,16 @@
-const express = require("express");
+import express, { json } from "express";
+import Users from "./users.js";
+import database from "./db.js";
 
+const users = new Users(database);
 const app = express();
-let count = 0;
-
-app.get("/", (req, res) => {
-  count++;
-  res.send(`test connection: ${count} times`);
+// app.use(json());
+app.get("/users", function (req, res) {
+  users.list(req, res);
 });
+app.get("/test", function (req, res) {
+  res.send('Test')
+});
+
 
 app.listen(5000, () => console.log("Server running on port 5000"));
