@@ -9,6 +9,8 @@ services:
       - "5000:5000"
     volumes:
       - ./app:/src/app
+    networks:
+      - backend
     container_name: backend-nodejs-container
 
   postgres:
@@ -23,4 +25,8 @@ services:
     volumes:
       - ./db-data/:/var/lib/postgresql/data
       - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      - backend
     container_name: db-postgres-container
+networks:
+  backend:
