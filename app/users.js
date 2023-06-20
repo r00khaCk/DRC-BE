@@ -1,4 +1,4 @@
-import database from "./db.js";
+import database from "./services/db.js";
 class Users {
   constructor(database) {
     this.users = {};

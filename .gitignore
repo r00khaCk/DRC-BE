@@ -1,4 +1,4 @@
-.env
+app/.env
 app/node_modules/
 app/package-lock.json
 db-data
