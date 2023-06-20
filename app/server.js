@@ -4,7 +4,7 @@ import database from "./db.js";
 
 const users = new Users(database);
 const app = express();
-// app.use(json());
+app.use(json());
 app.get("/users", function (req, res) {
   users.list(req, res);
 });

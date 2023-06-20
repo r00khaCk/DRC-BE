@@ -1,4 +1,5 @@
 .env
-node_modules/
-package-lock.json
-dockerClear.sh
+./app/node_modules/
+./app/package-lock.json
+./db-data
+./config/dockerClear.sh

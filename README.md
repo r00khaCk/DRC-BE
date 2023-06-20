@@ -17,4 +17,6 @@ Ports: <br>
 - `sudo kill -9 [PID]`:
   - Run to kill anything with the given PID running on the port
 
+WARNING: <br>
+- `MAKE SURE TO SET UP ENV DIFFERENTLY INSIDE DIGITAL OCEAN!!! (Remove local env file)`
   
