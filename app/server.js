@@ -1,15 +1,14 @@
 import express, { json } from "express";
-import Users from "./users.js";
-import database from "./services/db.js";
+import bodyParser from "body-parser";
+import morgan from "morgan";
+import * as UserRouter from "./api/routes/userRoute.js";
 
-const users = new Users(database);
 const app = express();
+app.use(morgan("dev"));
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
 app.use(json());
-app.get("/users", function (req, res) {
-  users.list(req, res);
-});
-app.get("/test", function (req, res) {
-  res.send("Test");
-});
+app.use("/user", UserRouter.router);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
