@@ -12,3 +12,16 @@ export async function registerNewUser(req, res) {
     });
   }
 }
+
+export async function loginUser(req, res) {
+  try {
+    let response = await UserModel.loginUser(req.body);
+    res.status(201).json({
+      message: response,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+}
