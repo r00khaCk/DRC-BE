@@ -8,7 +8,6 @@ app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use(json());
 app.use("/user", UserRouter.router);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
