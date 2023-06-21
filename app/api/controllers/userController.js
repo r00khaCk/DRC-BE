@@ -1,6 +1,6 @@
 import * as UserModel from "../models/users.js";
 
-export const registerNewUser = async (req, res) => {
+export const registerNewUser = async (req, res, next) => {
   try {
     let user = await UserModel.registerNewUser(req.body);
     // error responses
@@ -13,6 +13,11 @@ export const registerNewUser = async (req, res) => {
         message: "PASSWORD_HASHING_ERROR",
       });
     }
+    if (!sendVerificationEmail(req.body)) {
+      return res.status(500).json({
+        message: "VERIFICATION_EMAIL_ERROR",
+      });
+    }
     return res.status(201).json({
       message: "USER_CREATED",
     });
@@ -23,6 +28,7 @@ export const registerNewUser = async (req, res) => {
     });
   }
 };
+
 
 export async function loginUser(req, res) {
   try {
@@ -42,3 +48,16 @@ export async function loginUser(req, res) {
     });
   }
 }
+
+const sendVerificationEmail = async (userDetails, res) => {
+  try {
+    UserModel.emailVerification(userDetails, (message) => {
+      // console.log(emailSent, "message");
+    });
+  } catch (err) {
+    return res.status(500).json({
+      error: err,
+    });
+  }
+};
+
