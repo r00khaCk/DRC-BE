@@ -31,7 +31,7 @@ export const registerNewUser = async (req, res, next) => {
 
 const sendVerificationEmail = async (userDetails, res) => {
   try {
-    UserModel.verifyNewAccount(userDetails, (message) => {
+    UserModel.emailVerification(userDetails, (message) => {
       // console.log(emailSent, "message");
     });
   } catch (err) {
