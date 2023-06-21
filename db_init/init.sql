@@ -8,7 +8,7 @@ CREATE TABLE cryptHubSchema.users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(100),
   email VARCHAR(100),
-  password VARCHAR(50)
+  password VARCHAR(150)
 );
 
 CREATE TABLE cryptHubSchema.wallet (
