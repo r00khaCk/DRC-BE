@@ -8,9 +8,9 @@ export const registerNewUser = async (req, res) => {
       return res.status(400).json({
         message: "DUPLICATE_EMAIL",
       });
-    } else if (user === "HASHING_ERROR") {
+    } else if (user === "PASSWORD_HASHING_ERROR") {
       return res.status(500).json({
-        message: "HASHING_ERROR",
+        message: "PASSWORD_HASHING_ERROR",
       });
     }
     return res.status(201).json({
