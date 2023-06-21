@@ -47,7 +47,7 @@ export const registerNewUser = async (registerDetails) => {
 };
 
 const env = process.env;
-export const verifyNewAccount = async (userDetails, callback) => {
+export const emailVerification = async (userDetails, callback) => {
   try {
     const { email, name } = userDetails;
     const senderClient = nodemailer.createTransport({
