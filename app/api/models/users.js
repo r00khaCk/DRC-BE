@@ -5,6 +5,7 @@ import database from "../../services/db.js";
 import config from "../../app_config.js";
 const gmail_config = config.gmail;
 
+
 // Register new account
 export const registerNewUser = async (registerDetails) => {
   const { name, email, password } = registerDetails;
@@ -45,6 +46,67 @@ export const registerNewUser = async (registerDetails) => {
     });
   }
 };
+
+
+export async function loginUser(loginDetails) {
+  const { email, password } = loginDetails;
+  let query_result;
+  let response;
+  if (email && password) {
+    try {
+      query_result = await database.connection.query(
+        "SELECT * FROM crypthubschema.users WHERE email = $1",
+        [email]
+      );
+    } catch (error) {
+      console.log("Error in query");
+      console.log(error);
+      throw error;
+    }
+
+    try {
+      if (query_result.rows.length) {
+        response = checkPassword(
+          password,
+          query_result.rows[0].password,
+          query_result.rows[0].id
+        );
+      } else {
+        response = "EMAIL_NOT_EXIST";
+      }
+    } catch (error) {
+      console.log("Error during verification");
+      console.log(error);
+      throw error;
+    }
+  } else {
+    throw new Error("Bad Request");
+  }
+
+  async function checkPassword(received_password, actual_password, user_ID) {
+    const matching = await bcrypt.compare(received_password, actual_password);
+    console.log(matching);
+
+    if (matching) {
+      let token = jwt.sign({ id: user_ID }, process.env.secretKey, {
+        expiresIn: "30m",
+      });
+      return token;
+    } else {
+      return "INVALID_PASSWORD";
+    }
+  }
+
+  return response;
+}
+
+// May be used later when trying to verify the JWT -Haziq
+// try {
+//   const decoded = jwt.verify(token, secretKey);
+//   console.log(decoded);
+// } catch (error) {
+//   console.error('Invalid token');
+// }
 
 const env = process.env;
 export const emailVerification = async (userDetails, callback) => {
@@ -90,3 +152,4 @@ export const emailVerification = async (userDetails, callback) => {
     throw Error(error);
   }
 };
+

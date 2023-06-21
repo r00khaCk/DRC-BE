@@ -29,6 +29,26 @@ export const registerNewUser = async (req, res, next) => {
   }
 };
 
+
+export async function loginUser(req, res) {
+  try {
+    let response = await UserModel.loginUser(req.body);
+    if (response !== "EMAIL_NOT_EXIST" && response !== "INVALID_PASSWORD") {
+      return res.status(201).json({
+        message: "LOGIN_SUCCESSFUL",
+        token: response,
+      });
+    } else
+      res.status(500).json({
+        message: response,
+      });
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+}
+
 const sendVerificationEmail = async (userDetails, res) => {
   try {
     UserModel.emailVerification(userDetails, (message) => {
@@ -40,3 +60,4 @@ const sendVerificationEmail = async (userDetails, res) => {
     });
   }
 };
+
