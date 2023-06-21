@@ -17,7 +17,7 @@ export const registerNewUser = async (registerDetails) => {
   } else {
     bcrypt.hash(password, 10, async (err, hash) => {
       if (err) {
-        return "HASHING_ERROR";
+        return "PASSWORD_HASHING_ERROR";
       } else {
         let hashPassword = hash;
         let response;
@@ -41,12 +41,3 @@ export const registerNewUser = async (registerDetails) => {
     });
   }
 };
-
-//Helper methods
-// const _sendResponse = (res, registerDetails) => {
-//   res.status(200).send(registerDetails || {});
-// };
-
-// const _sendError = (res, status, code) => {
-//   res.status(status).send({ error: code || "UNKNOWN_ERROR" });
-// };
