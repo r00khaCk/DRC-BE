@@ -3,11 +3,12 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import config from "../../app_config.js";
-const gmail_config = config.gmail;
 
+const gmail_config = config.gmail;
+const env = process.env;
 
 // Register new account
-export const registerNewUser = async (registerDetails) => {
+export const registerNewUserModel = async (registerDetails) => {
   const { name, email, password } = registerDetails;
   // storedEmail will fetch records where the email equals to the registerDetails email
   let storedEmail = await database.connection.query(
@@ -47,7 +48,52 @@ export const registerNewUser = async (registerDetails) => {
   }
 };
 
+// handles sending the verification email to the new user
+export const sendVerificationEmailModel = async (userDetails, callback) => {
+  try {
+    const { email, name } = userDetails;
+    const senderClient = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: gmail_config.email,
+        pass: gmail_config.password,
+      },
+    });
 
+    const verificationToken = jwt.sign(
+      {
+        data: email,
+      },
+      env.SECRET_KEY,
+      { expiresIn: "5m" }
+    );
+
+    // creates the email template
+    const verificationEmailTemplate = {
+      from: gmail_config.email,
+
+      to: email,
+
+      subject: "Email Verification",
+
+      text: `Hi there ${name},\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}`,
+    };
+
+    senderClient.sendMail(verificationEmailTemplate, (error, info) => {
+      if (error) {
+        console.log(Error(error));
+        callback("VERIFICATION_EMAIL_ERROR");
+      }
+      console.log("VERIFICATION_EMAIL_SENT");
+      console.log(info);
+      callback("VERIFICATION_EMAIL_SENT");
+    });
+  } catch (error) {
+    throw Error(error);
+  }
+};
+
+// user login
 export async function loginUser(loginDetails) {
   const { email, password } = loginDetails;
   let query_result;
@@ -108,48 +154,39 @@ export async function loginUser(loginDetails) {
 //   console.error('Invalid token');
 // }
 
-const env = process.env;
-export const emailVerification = async (userDetails, callback) => {
-  try {
-    const { email, name } = userDetails;
-    const senderClient = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: gmail_config.email,
-        pass: gmail_config.password,
-      },
-    });
+// verifies if the token sent to the user matches the token generated in the server
+export const verifyAccountModel = (reqParams) => {
+  console.log("reqParams", reqParams);
+  return new Promise((resolve, reject) => {
+    const { token } = reqParams;
 
-    const verificationToken = jwt.sign(
-      {
-        data: email,
-      },
-      env.SECRET_KEY,
-      { expiresIn: "5m" }
-    );
-
-    const verificationEmailTemplate = {
-      from: gmail_config.email,
-
-      to: email,
-
-      subject: "Email Verification",
-
-      text: `Hi there ${name},\nPlease click on this link to verify your account\nhttp://localhost:5000/user/registerUsers/verify/${verificationToken}`,
-    };
-
-    let message;
-    senderClient.sendMail(verificationEmailTemplate, (error, info) => {
-      if (error) {
-        console.log(Error(error));
-        callback("VERIFICATION_EMAIL_ERROR");
+    jwt.verify(token, env.SECRET_KEY, (err, decoded) => {
+      if (err) {
+        resolve("INVALID_TOKEN");
+      } else {
+        const tokenValue = decoded.data;
+        console.log(tokenValue);
+        changeAccountStatus(tokenValue);
+        resolve("VALID_TOKEN");
       }
-      console.log("VERIFICATION_EMAIL_SENT");
-      console.log(info);
-      callback("VERIFICATION_EMAIL_SENT");
     });
-  } catch (error) {
-    throw Error(error);
-  }
+  });
 };
 
+//-----Functions used within the file-----
+// changes the account status when the token has been validated
+const changeAccountStatus = async (userEmailFromToken) => {
+  const userEmail = userEmailFromToken;
+  let values = [userEmail, 1];
+  let response;
+  try {
+    response = await database.connection.query(
+      "UPDATE crypthubschema.users SET account_verified=$2 WHERE email=$1",
+      values
+    );
+  } catch (error) {
+    console.log("Error in query");
+    console.log(error);
+    throw error;
+  }
+};
