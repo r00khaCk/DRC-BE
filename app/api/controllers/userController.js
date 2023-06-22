@@ -42,3 +42,21 @@ export async function loginUser(req, res) {
     });
   }
 }
+
+export async function forgotPassword(req, res) {
+  try {
+    let response = await UserModel.forgotPassword(req.body);
+    if (response !== "EMAIL_NOT_EXIST") {
+      return res.status(201).json({
+        message: response,
+      });
+    } else
+      res.status(500).json({
+        message: response,
+      });
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+}

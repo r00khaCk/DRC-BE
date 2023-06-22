@@ -4,4 +4,6 @@ export const router = express.Router();
 
 router.post("/registerUsers", UserController.registerNewUser);
 router.post("/loginUser", UserController.loginUser);
+router.post("/forgotPassword", UserController.forgotPassword);
+
 
