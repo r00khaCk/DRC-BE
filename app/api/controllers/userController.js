@@ -1,7 +1,15 @@
+import { validationResult } from "express-validator";
 import * as UserModel from "../models/users.js";
 
 export const registerNewUser = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
     let user = await UserModel.registerNewUserModel(req.body);
     // error responses
     if (user === "DUPLICATE_EMAIL") {
@@ -23,6 +31,7 @@ export const registerNewUser = async (req, res, next) => {
     });
     // catches error in the request body, i.e: missing key when post request is sent
   } catch (err) {
+    next(err);
     return res.status(500).json({
       error: err,
     });
