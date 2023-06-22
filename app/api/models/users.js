@@ -174,7 +174,7 @@ export async function forgotPassword(forgotPasswordDetails) {
       from: "crypthubofficial@gmail.com",
       to: user_email,
       subject: "Password Recovery",
-      text: `This is your new password: ${user_new_password}\nMake sure to CHANGE your password after logging in!`,
+      text: `This is your new password ${user_new_password}\nMake sure to CHANGE your password after logging in!`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
