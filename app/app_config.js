@@ -9,10 +9,5 @@ const app_config = {
     password: env.POSTGRES_PASSWORD,
     database: env.POSTGRES_DB,
   },
-
-  gmail: {
-    email: env.GOOGLE_EMAIL,
-    password: env.GOOGLE_PASSWORD,
-  },
 };
 export default app_config;

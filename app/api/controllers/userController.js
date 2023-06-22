@@ -2,7 +2,7 @@ import * as UserModel from "../models/users.js";
 
 export const registerNewUser = async (req, res, next) => {
   try {
-    let user = await UserModel.registerNewUser(req.body);
+    let user = await UserModel.registerNewUserModel(req.body);
     // error responses
     if (user === "DUPLICATE_EMAIL") {
       return res.status(400).json({
@@ -29,6 +29,37 @@ export const registerNewUser = async (req, res, next) => {
   }
 };
 
+export const verifyAccount = async (req, res) => {
+  try {
+    // console.log("req.params", req);
+    let account_verified = await UserModel.verifyAccountModel(req.params);
+    console.log(account_verified);
+    if (account_verified === "INVALID_TOKEN") {
+      return res.status(401).json({
+        message: "INVALID_TOKEN",
+      });
+    } else if (account_verified === "VALID_TOKEN") {
+      return res.render("verifiedAccountView");
+      // return res.status(200).json({
+      //   message: "VALID_TOKEN",
+      // });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+};
+
+const sendVerificationEmail = async (userDetails, res) => {
+  try {
+    UserModel.sendVerificationEmailModel(userDetails);
+  } catch (err) {
+    return res.status(500).json({
+      error: err,
+    });
+  }
+};
 
 export async function loginUser(req, res) {
   try {
