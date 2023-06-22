@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as UserController from "../controllers/userController.js";
+// import {}
 export const router = express.Router();
 
 router.post("/registerUser", UserController.registerNewUser);
