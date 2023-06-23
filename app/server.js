@@ -5,6 +5,7 @@ import bodyParser from "body-parser";
 import morgan from "morgan";
 // import cookieParser from "cookie-parser";
 import * as UserRouter from "./api/routes/userRoute.js";
+import * as TradeRouter from "./api/routes/tradeRoute.js";
 import testRouter from "./api/routes/test-route.js";
 
 const app = express();
@@ -36,7 +37,7 @@ app.use((req, res, next) => {
 });
 
 app.use("/user", UserRouter.router);
-
+app.use("/trade", TradeRouter.router);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
