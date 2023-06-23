@@ -73,14 +73,35 @@ const sendVerificationEmail = async (userDetails, res) => {
 
 export async function loginUser(req, res) {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        errors: errors.array(),
+      });
+    }
     let response = await UserModel.loginUser(req.body);
-    if (response !== "EMAIL_NOT_EXIST" && response !== "INVALID_PASSWORD") {
+
+    if (
+      response !== "EMAIL_NOT_EXIST" &&
+      response !== "INVALID_PASSWORD" &&
+      response !== "ACCOUNT_NOT_VERIFIED"
+    ) {
       return res.status(201).json({
         message: "LOGIN_SUCCESSFUL",
         token: response,
       });
+    } else if (response == "ACCOUNT_NOT_VERIFIED") {
+      if (!sendVerificationEmail(req.body)) {
+        return res.status(500).json({
+          message: "VERIFICATION_EMAIL_ERROR",
+        });
+      }
+      return res.status(201).json({
+        message: response,
+      });
     } else
-      res.status(500).json({
+      res.status(400).json({
         message: response,
       });
   } catch (error) {

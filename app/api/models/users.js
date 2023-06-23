@@ -48,7 +48,7 @@ export const registerNewUserModel = async (registerDetails) => {
 
 export const sendVerificationEmailModel = async (userDetails, callback) => {
   try {
-    const { email, name } = userDetails;
+    const { email } = userDetails;
     const senderClient = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -72,10 +72,9 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
       subject: "Email Verification",
 
-      text: `Hi there ${name},\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}`,
+      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}`,
     };
 
-    let message;
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
       if (error) {
         console.log(Error(error));
@@ -145,11 +144,15 @@ export async function loginUser(loginDetails) {
 
     try {
       if (query_result.rows.length) {
-        response = checkPassword(
-          password,
-          query_result.rows[0].password,
-          query_result.rows[0].id
-        );
+        if (query_result.rows[0].account_verified == true) {
+          response = checkPassword(
+            password,
+            query_result.rows[0].password,
+            query_result.rows[0].id
+          );
+        } else {
+          response = "ACCOUNT_NOT_VERIFIED";
+        }
       } else {
         response = "EMAIL_NOT_EXIST";
       }
@@ -218,7 +221,7 @@ export async function forgotPassword(forgotPasswordDetails) {
     const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const charactersLength = characters.length;
     let counter = 0;
-    while (counter < 6) {
+    while (counter < 9) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
       counter += 1;
     }
