@@ -1,14 +1,18 @@
 import * as express from "express";
 import * as UserController from "../controllers/userController.js";
-import { userRegistrationValidation } from "../middleware/validation/userValidation.js";
+import * as UserValidation from "../middleware/validation/userValidation.js";
 export const router = express.Router();
 
 router.post(
   "/registerUser",
-  userRegistrationValidation,
+  UserValidation.userRegistrationValidation,
   UserController.registerNewUser
 );
-router.post("/loginUser", UserController.loginUser);
+router.post(
+  "/loginUser",
+  UserValidation.userLoginValidation,
+  UserController.loginUser
+);
 router.post("/forgotPassword", UserController.forgotPassword);
 
 router.get("/verify/:token", UserController.verifyAccount);

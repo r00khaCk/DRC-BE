@@ -19,4 +19,18 @@ export const userRegistrationValidation = [
     .withMessage("Password should be at least 8 characters"),
 ];
 
+export const userLoginValidation = [
+  body("email")
+    .exists({ checkFalsy: true })
+    .isEmail()
+    .withMessage("Provide valid email"),
+  body("password")
+    .exists({ checkFalsy: true })
+    .withMessage("Password is required")
+    .isString()
+    .withMessage("Password should be string")
+    .isLength({ min: 8 })
+    .withMessage("Password should be at least 8 characters"),
+];
+
 // module.exports = { userValidationChainable };
