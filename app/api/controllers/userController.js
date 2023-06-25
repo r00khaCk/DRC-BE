@@ -128,3 +128,34 @@ export async function forgotPassword(req, res) {
     });
   }
 }
+
+export async function logoutUser(req, res) {
+  try {
+    let response = await UserModel.logoutUser(req.body);
+    if (response !== "LOGOUT_SUCCESS") {
+      return res.status(500).json({
+        message: response,
+      });
+    } else
+      res.status(200).json({
+        message: response,
+      });
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+}
+
+export async function checkBlacklist(req, res) {
+  try {
+    let response = await UserModel.checkBlacklist(req.body);
+    res.status(200).json({
+      message: response,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      error: error,
+    });
+  }
+}

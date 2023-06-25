@@ -5,6 +5,7 @@ services:
       context: .
     depends_on:
       - postgres
+      - redis
     ports:
       - "5000:5000"
     volumes:
@@ -25,5 +26,26 @@ services:
     networks:
       - backend
     container_name: db-postgres-container
+
+  redis:
+    image: "bitnami/redis:latest"
+    ports:
+      - "6379:6739"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - backend
+
+  redis-cli:
+    image: "bitnami/redis:latest"
+    command: ["redis-cli", "-h", "redis", "-p", "6379"]
+    stdin_open: true
+    tty: true
+    depends_on:
+      - redis
+    networks:
+      - backend
+    container_name: redis-cli-container
+
 networks:
   backend:

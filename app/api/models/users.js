@@ -2,8 +2,13 @@ import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
+import Redis from "ioredis";
 
 const env = process.env;
+const redisClient = new Redis({
+  host: "redis",
+  port: 6379,
+});
 
 // Register new account
 export const registerNewUserModel = async (registerDetails) => {
@@ -270,6 +275,59 @@ export async function forgotPassword(forgotPasswordDetails) {
         console.log("Email sent: " + info.response);
       }
     });
+  }
+
+  return response;
+}
+
+export async function logoutUser(userToken) {
+  const { token } = userToken;
+  let response;
+  if (token) {
+    try {
+      blacklist(token);
+      response = "LOGOUT_SUCCESS";
+    } catch (error) {
+      console.log("Error when blacklisting token");
+      console.log(error);
+      response = "BLACKLIST_ERROR";
+      throw error;
+    }
+  } else {
+    response = "REQUEST_ERROR";
+  }
+
+  function blacklist(logout_token) {
+    redisClient.sadd("blacklisted", logout_token);
+  }
+
+  return response;
+}
+
+// This function is just to see if a token is blacklisted or not -Haziq
+export async function checkBlacklist(userToken) {
+  const { token } = userToken;
+  let response;
+  if (token) {
+    try {
+      const isBlacklisted = await checkBlacklist(token);
+      if (isBlacklisted == 1) {
+        response = "TOKEN_IS_BLACKLISTED";
+      } else {
+        response = "TOKEN_IS_VALID";
+      }
+    } catch (error) {
+      console.log("Error when checking");
+      console.log(error);
+      response = "BLACKLIST_CHECK_ERROR";
+      throw error;
+    }
+  } else {
+    response = "REQUEST_ERROR";
+  }
+
+  function checkBlacklist(token) {
+    return redisClient.sismember("blacklisted", token);
   }
 
   return response;
