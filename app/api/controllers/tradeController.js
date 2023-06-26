@@ -9,11 +9,10 @@ export const buyTrade = async (req, res) => {
   }
   return res.status(200).json({
     message: "BUY_ORDER_SUCCESS",
-    order: [
-      {
-        orderAmount: buyOrder.orderAmount,
-        walletBalance: buyOrder.walletBalance,
-      },
-    ],
+    details: {
+      orderAmount: buyOrder.orderAmount,
+      walletBalance: buyOrder.walletBalance,
+      coinCurrency: buyOrder.coinCurrency,
+    },
   });
 };
