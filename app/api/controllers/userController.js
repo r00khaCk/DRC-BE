@@ -106,7 +106,7 @@ export async function loginUser(req, res) {
       });
   } catch (error) {
     return res.status(500).json({
-      error: error,
+      message: error,
     });
   }
 }
@@ -124,7 +124,7 @@ export async function forgotPassword(req, res) {
       });
   } catch (error) {
     return res.status(500).json({
-      error: error,
+      message: error,
     });
   }
 }
@@ -142,7 +142,7 @@ export async function logoutUser(req, res) {
       });
   } catch (error) {
     return res.status(500).json({
-      error: error,
+      message: error,
     });
   }
 }
@@ -155,7 +155,7 @@ export async function checkBlacklist(req, res) {
     });
   } catch (error) {
     return res.status(500).json({
-      error: error,
+      message: error,
     });
   }
 }

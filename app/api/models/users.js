@@ -202,7 +202,6 @@ export async function loginUser(loginDetails) {
 export async function forgotPassword(forgotPasswordDetails) {
   const { email } = forgotPasswordDetails;
   let query_result;
-  let response;
   if (email) {
     try {
       query_result = await database.connection.query(
@@ -220,9 +219,9 @@ export async function forgotPassword(forgotPasswordDetails) {
         const new_password = generateRandomChars();
         setNewPassword(query_result.rows[0].email, new_password);
         sendEmail(query_result.rows[0].email, new_password);
-        response = "SEND_NEW_PASSWORD_TO_USER";
+        return "SEND_NEW_PASSWORD_TO_USER";
       } else {
-        response = "EMAIL_NOT_EXIST";
+        return "EMAIL_NOT_EXIST";
       }
     } catch (error) {
       console.log("Error during sending new password to user's email");
@@ -235,12 +234,22 @@ export async function forgotPassword(forgotPasswordDetails) {
 
   function generateRandomChars() {
     let result = "";
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const charactersLength = characters.length;
+    const upper_case = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lower_case = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "1234567890";
+    const symbols = "!@#$%^&*()-_=+{}:;,<.>[]";
+
     let counter = 0;
-    while (counter < 9) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
+    while (counter < 2) {
+      result += upper_case.charAt(
+        Math.floor(Math.random() * upper_case.length)
+      );
+      result += lower_case.charAt(
+        Math.floor(Math.random() * lower_case.length)
+      );
+      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      result += symbols.charAt(Math.floor(Math.random() * symbols.length));
+      counter++;
     }
     return result;
   }
@@ -288,59 +297,50 @@ export async function forgotPassword(forgotPasswordDetails) {
       }
     });
   }
-
-  return response;
 }
 
 export async function logoutUser(userToken) {
   const { token } = userToken;
-  let response;
   if (token) {
     try {
       blacklist(token);
-      response = "LOGOUT_SUCCESS";
+      return "LOGOUT_SUCCESS";
     } catch (error) {
       console.log("Error when blacklisting token");
       console.log(error);
-      response = "BLACKLIST_ERROR";
       throw error;
     }
   } else {
-    response = "REQUEST_ERROR";
+    return "BAD_REQUEST";
   }
 
   function blacklist(logout_token) {
     redisClient.sadd("blacklisted", logout_token);
   }
-
-  return response;
 }
 
 // This function is just to see if a token is blacklisted or not -Haziq
 export async function checkBlacklist(userToken) {
   const { token } = userToken;
-  let response;
+
   if (token) {
     try {
-      const isBlacklisted = await checkBlacklist(token);
+      const isBlacklisted = await redisCheckBlacklist(token);
       if (isBlacklisted == 1) {
-        response = "TOKEN_IS_BLACKLISTED";
+        return "TOKEN_IS_BLACKLISTED";
       } else {
-        response = "TOKEN_IS_VALID";
+        return "TOKEN_IS_VALID";
       }
     } catch (error) {
       console.log("Error when checking");
       console.log(error);
-      response = "BLACKLIST_CHECK_ERROR";
       throw error;
     }
   } else {
-    response = "REQUEST_ERROR";
+    return "BAD_REQUEST";
   }
 
-  function checkBlacklist(token) {
+  function redisCheckBlacklist(token) {
     return redisClient.sismember("blacklisted", token);
   }
-
-  return response;
 }
