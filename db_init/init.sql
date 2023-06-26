@@ -16,7 +16,8 @@ CREATE TABLE cryptHubSchema.wallet (
   wallet_id SERIAL PRIMARY KEY,
   user_id INT REFERENCES cryptHubSchema.users(id),
   currency VARCHAR(50),
-  amount DECIMAL(10, 2)
+  amount DECIMAL(10, 2),
+  CONSTRAINT unique_user_currency UNIQUE (user_id, currency)
 );
 
 CREATE TABLE cryptHubSchema.transactions (

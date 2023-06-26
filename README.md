@@ -19,6 +19,11 @@ Ports: <br>
 - `sudo kill -9 [PID]`:
   - Run to kill anything with the given PID running on the port <br>
 
+Token implementation (POSTMAN)
+
+- copy the token generated when login
+- in new `POST` request, add `Authorization` key with `value`: `Bearer [token]`
+
 ## **TAKE NOTE**: <br>
 
 MAKE SURE TO SET UP ENV DIFFERENTLY INSIDE DIGITAL OCEAN!!! (Remove local env file)
