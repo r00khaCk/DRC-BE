@@ -9,44 +9,42 @@ export const buyCoinsModel = async (order_information, req_header) => {
   const token = req_header.authorization.split(" ")[1];
   const decoded = jwt.verify(token, env.SECRET_KEY);
   let user_email = decoded.email;
-  console.log("User email from Token: ", user_email);
-  console.log(order_information);
+  console.log("User email from token: ", user_email);
+  console.log("Buy order from user: ", order_information);
 
+  // gets the returned value from calculateTotalModel() and stores it in calculate_total_model_result
   const calculate_total_model_result = await calculateTotalModel(
     order_information,
     user_email
   );
   console.log(
-    "Variable calculate_total_model_result",
+    "Variable calculate_total_model_result: ",
     calculate_total_model_result
   );
   //checks the returned value of the calculate_total_model_result()
   if (calculate_total_model_result.status === "BALANCE_INSUFFICIENT") {
     return { status: "BUY_ERROR" };
   } else if (calculate_total_model_result.status === "BALANCE_SUFFICIENT") {
-    //calculates the new balance for the USDT wallet
-    console.log(
-      "wallet_balance:",
-      calculate_total_model_result.wallet_balance.rows[0].amount
-    );
+    //calculates the new balance for the USD wallet
     let balance_from_wallet =
       calculate_total_model_result.wallet_balance.rows[0].amount;
-
-    console.log(balance_from_wallet);
     const new_balance =
       balance_from_wallet - calculate_total_model_result.total_amount;
-    console.log(new_balance);
-    // query to update the wallet
+    console.log("New balance for USD wallet: ", new_balance);
+    // query to update the USD wallet
     let balance_values = [new_balance.toFixed(2), user_email];
-    await database.connection.query(
-      "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = 'USD'",
-      balance_values
-    );
+    let update_usd_wallet =
+      "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = 'USD'";
+    await database.connection.query(update_usd_wallet, balance_values);
+
+    //adds the bought coin into the user wallet (currency based on order)
     addBoughtCurrencyIntoWallet(
       order_information,
       calculate_total_model_result.total_amount,
       user_email
     );
+
+    // return result
     const { coin_currency } = order_information;
     return {
       status: "BUY_ORDER_SUCCESS",
@@ -67,10 +65,12 @@ const calculateTotalModel = async (order_information, user_email) => {
 
     //check if wallet has enough money (virtual) in the user's USDT wallet
     let values = [user_email];
-    console.log("user_email from token: ", user_email);
+
+    let get_wallet_balance =
+      "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = 'USD'";
 
     let wallet_balance = await database.connection.query(
-      "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = 'USD'",
+      get_wallet_balance,
       values
     );
     console.log("Wallet balance from db: ", wallet_balance.rows[0].amount);
@@ -92,21 +92,27 @@ const addBoughtCurrencyIntoWallet = async (
   user_email
 ) => {
   const { coin_currency } = order_information;
+
+  // return value from getCurrentCoinAmount() is stored in current_currency_amount
   let current_currency_amount = await getCurrentCoinAmount(
     user_email,
     coin_currency
   );
-  console.log("current amount from db: ", current_currency_amount);
-  console.log("total amount: ", total_amount);
+  console.log(
+    "current amount of specific currency from db: ",
+    current_currency_amount
+  );
 
+  // adds the current_currency_amount with the total_amount and stores in updated_currency_amount
   let updated_currency_amount = current_currency_amount + total_amount;
   console.log("updated currency amount", updated_currency_amount);
 
   let values = [updated_currency_amount, user_email, coin_currency];
-  const insert_bought_currency_query =
+
+  const update_bought_currency_amount =
     "UPDATE cryptHubSchema.wallet AS w SET amount = $1  FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = $3 ";
   let update_currency_amount_query = await database.connection.query(
-    insert_bought_currency_query,
+    update_bought_currency_amount,
     values
   );
   let bought_currency_amount = update_currency_amount_query;
