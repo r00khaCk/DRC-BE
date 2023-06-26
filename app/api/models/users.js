@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
+import e from "express";
 
 const env = process.env;
 
@@ -29,10 +30,11 @@ export const registerNewUserModel = async (registerDetails) => {
         if (name && email && hashPassword) {
           let values = [name, email, hashPassword, 0];
           try {
-            response = await database.connection.query(
+            await database.connection.query(
               "INSERT INTO crypthubschema.users (name,email,password,account_verified) VALUES($1,$2,$3,$4) RETURNING *",
               values
             );
+            addUserWallets(email);
           } catch (error) {
             console.log("Error in query");
             console.log(error);
@@ -124,6 +126,14 @@ const changeAccountStatus = async (userEmailFromToken) => {
     console.log(error);
     throw error;
   }
+};
+
+const addUserWallets = async (userEmail) => {
+  console.log(userEmail);
+  let values = [userEmail];
+  let insert_empty_wallet_query =
+    "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) SELECT 'USD', 0, u.id FROM cryptHubSchema.users AS u union all select 'BTC', 0, u.id FROM cryptHubSchema.users AS u union all select 'ETH', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1";
+  await database.connection.query(insert_empty_wallet_query, values);
 };
 
 export async function loginUser(loginDetails) {
