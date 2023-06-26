@@ -148,7 +148,7 @@ export async function loginUser(loginDetails) {
           response = checkPassword(
             password,
             query_result.rows[0].password,
-            query_result.rows[0].id
+            query_result.rows[0].email
           );
         } else {
           response = "ACCOUNT_NOT_VERIFIED";
@@ -165,12 +165,12 @@ export async function loginUser(loginDetails) {
     throw new Error("Bad Request");
   }
 
-  async function checkPassword(received_password, actual_password, user_ID) {
+  async function checkPassword(received_password, actual_password, userEmail) {
     const matching = await bcrypt.compare(received_password, actual_password);
     console.log(matching);
 
     if (matching) {
-      let token = jwt.sign({ id: user_ID }, env.SECRET_KEY, {
+      let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
         expiresIn: "60m",
       });
       return token;
