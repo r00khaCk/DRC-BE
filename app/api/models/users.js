@@ -134,11 +134,10 @@ const changeAccountStatus = async (userEmailFromToken) => {
 export async function loginUser(loginDetails) {
   const { email, password } = loginDetails;
   let query_result;
-  let response;
   if (email && password) {
     try {
       query_result = await database.connection.query(
-        "SELECT * FROM crypthubschema.users WHERE email = $1",
+        "SELECT * FROM crypthubschema.users JOIN crypthubschema.wallet ON id = user_id WHERE email = $1 ORDER BY wallet_id ASC",
         [email]
       );
     } catch (error) {
@@ -150,16 +149,31 @@ export async function loginUser(loginDetails) {
     try {
       if (query_result.rows.length) {
         if (query_result.rows[0].account_verified == true) {
-          response = checkPassword(
+          let get_token = await checkPassword(
             password,
             query_result.rows[0].password,
-            query_result.rows[0].id
+            query_result.rows[0].email
           );
+          if (get_token == "INVALID_PASSWORD") {
+            return "INVALID_PASSWORD";
+          } else {
+            return {
+              message: "LOGIN_SUCCESSFUL",
+              details: {
+                token: get_token,
+                name: query_result.rows[0].name,
+                email: query_result.rows[0].email,
+                USD: query_result.rows[0].amount,
+                BTC: query_result.rows[1].amount,
+                ETH: query_result.rows[2].amount,
+              },
+            };
+          }
         } else {
-          response = "ACCOUNT_NOT_VERIFIED";
+          return "ACCOUNT_NOT_VERIFIED";
         }
       } else {
-        response = "EMAIL_NOT_EXIST";
+        return "EMAIL_NOT_EXIST";
       }
     } catch (error) {
       console.log("Error during verification");
@@ -170,12 +184,12 @@ export async function loginUser(loginDetails) {
     throw new Error("Bad Request");
   }
 
-  async function checkPassword(received_password, actual_password, user_ID) {
+  async function checkPassword(received_password, actual_password, userEmail) {
     const matching = await bcrypt.compare(received_password, actual_password);
     console.log(matching);
 
     if (matching) {
-      let token = jwt.sign({ id: user_ID }, env.SECRET_KEY, {
+      let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
         expiresIn: "60m",
       });
       return token;
@@ -183,8 +197,6 @@ export async function loginUser(loginDetails) {
       return "INVALID_PASSWORD";
     }
   }
-
-  return response;
 }
 
 export async function forgotPassword(forgotPasswordDetails) {

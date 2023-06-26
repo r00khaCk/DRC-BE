@@ -88,8 +88,8 @@ export async function loginUser(req, res) {
       response !== "ACCOUNT_NOT_VERIFIED"
     ) {
       return res.status(201).json({
-        message: "LOGIN_SUCCESSFUL",
-        token: response,
+        message: response.message,
+        details: response.details,
       });
     } else if (response == "ACCOUNT_NOT_VERIFIED") {
       if (!sendVerificationEmail(req.body)) {
@@ -97,7 +97,7 @@ export async function loginUser(req, res) {
           message: "VERIFICATION_EMAIL_ERROR",
         });
       }
-      return res.status(201).json({
+      return res.status(401).json({
         message: response,
       });
     } else

@@ -10,14 +10,15 @@ const redisClient = new Redis({
 export const checkAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
-    isTokenBlacklisted = await checkBlacklist(token);
+    let isTokenBlacklisted = await checkBlacklist(token);
+    console.log(isTokenBlacklisted);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
       const decoded = jwt.verify(token, env.SECRET_KEY);
       req.userEmail = decoded;
       next();
     } else {
       return res.status(401).json({
-        message: "Authentication Failed",
+        message: "TOKEN_BLACKLISTED",
       });
     }
   } catch (error) {
@@ -28,11 +29,11 @@ export const checkAuth = async (req, res, next) => {
 };
 
 async function checkBlacklist(userToken) {
-  const { token } = userToken;
   let response;
-  if (token) {
+  if (userToken) {
     try {
-      const isBlacklisted = await checkBlacklist(token);
+      const isBlacklisted = await redisCheckBlacklist(userToken);
+      console.log(isBlacklisted);
       if (isBlacklisted == 1) {
         response = "TOKEN_IS_BLACKLISTED";
       } else {
@@ -43,14 +44,14 @@ async function checkBlacklist(userToken) {
       console.log(error);
       response = "BLACKLIST_CHECK_ERROR";
       throw error;
+    } finally {
+      return response;
     }
   } else {
-    response = "REQUEST_ERROR";
+    return (response = "REQUEST_ERROR");
   }
 
-  function checkBlacklist(token) {
-    return redisClient.sismember("blacklisted", token);
+  function redisCheckBlacklist(userToken) {
+    return redisClient.sismember("blacklisted", userToken);
   }
-
-  return response;
 }
