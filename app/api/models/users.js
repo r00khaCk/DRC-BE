@@ -190,7 +190,7 @@ export async function loginUser(loginDetails) {
 
     if (matching) {
       let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
-        expiresIn: "60m",
+        expiresIn: "24h",
       });
       return token;
     } else {
@@ -229,7 +229,7 @@ export async function forgotPassword(forgotPasswordDetails) {
       throw error;
     }
   } else {
-    throw new Error("Bad Request");
+    return "BAD_REQUEST";
   }
 
   function generateRandomChars() {

@@ -18,12 +18,12 @@ export const checkAuth = async (req, res, next) => {
       next();
     } else {
       return res.status(401).json({
-        message: "TOKEN_BLACKLISTED",
+        message: "AUTHENTICATION_FAILED",
       });
     }
   } catch (error) {
     return res.status(401).json({
-      message: "Authentication Failed",
+      message: "AUTHENTICATION_FAILED",
     });
   }
 };
