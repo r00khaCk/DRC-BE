@@ -41,18 +41,26 @@ export const registerNewUser = async (req, res, next) => {
 
 export const verifyAccount = async (req, res) => {
   try {
-    // console.log("req.params", req);
+    let user_email_url = req.query.email;
+    console.log("user email from verify token: ", user_email_url);
+
+    const email = { email: user_email_url };
     let account_verified = await UserModel.verifyAccountModel(req.params);
     console.log(account_verified);
     if (account_verified === "INVALID_TOKEN") {
-      return res.status(401).json({
-        message: "INVALID_TOKEN",
-      });
+      //check if the account has been verified after first INVALID_TOKEN is received and email verification is sent again
+      let account_verify_check =
+        await UserModel.checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired(
+          email
+        );
+      if (account_verify_check.rows[0].account_verified == false) {
+        sendVerificationEmail(email);
+        return res.render("resendVerificationEmailView");
+      } else {
+        return res.render("verifiedAccountView");
+      }
     } else if (account_verified === "VALID_TOKEN") {
       return res.render("verifiedAccountView");
-      // return res.status(200).json({
-      //   message: "VALID_TOKEN",
-      // });
     }
   } catch (error) {
     return res.status(500).json({
@@ -61,7 +69,7 @@ export const verifyAccount = async (req, res) => {
   }
 };
 
-const sendVerificationEmail = async (userDetails, res) => {
+export const sendVerificationEmail = async (userDetails, res) => {
   try {
     UserModel.sendVerificationEmailModel(userDetails);
   } catch (err) {
