@@ -322,8 +322,8 @@ export async function forgotPassword(forgotPasswordDetails) {
   }
 }
 
-export async function logoutUser(userToken) {
-  const { token } = userToken;
+export async function logoutUser(user_token) {
+  const  token  = user_token;
   if (token) {
     try {
       blacklist(token);
@@ -331,7 +331,7 @@ export async function logoutUser(userToken) {
     } catch (error) {
       console.log("Error when blacklisting token");
       console.log(error);
-      throw error;
+      return "INVALID_TOKEN";
     }
   } else {
     return "BAD_REQUEST";
@@ -343,8 +343,8 @@ export async function logoutUser(userToken) {
 }
 
 // This function is just to see if a token is blacklisted or not -Haziq
-export async function checkBlacklist(userToken) {
-  const { token } = userToken;
+export async function checkBlacklist(user_token) {
+  const { token } = user_token;
 
   if (token) {
     try {
