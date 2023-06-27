@@ -2,9 +2,13 @@ import bcrypt from "bcrypt";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
-import e from "express";
+import Redis from "ioredis";
 
 const env = process.env;
+const redisClient = new Redis({
+  host: "redis",
+  port: 6379,
+});
 
 // Register new account
 export const registerNewUserModel = async (registerDetails) => {
@@ -153,11 +157,10 @@ export const checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired = (
 export async function loginUser(loginDetails) {
   const { email, password } = loginDetails;
   let query_result;
-  let response;
   if (email && password) {
     try {
       query_result = await database.connection.query(
-        "SELECT * FROM crypthubschema.users WHERE email = $1",
+        "SELECT * FROM crypthubschema.users JOIN crypthubschema.wallet ON id = user_id WHERE email = $1 ORDER BY wallet_id ASC",
         [email]
       );
     } catch (error) {
@@ -169,16 +172,31 @@ export async function loginUser(loginDetails) {
     try {
       if (query_result.rows.length) {
         if (query_result.rows[0].account_verified == true) {
-          response = checkPassword(
+          let get_token = await checkPassword(
             password,
             query_result.rows[0].password,
             query_result.rows[0].email
           );
+          if (get_token == "INVALID_PASSWORD") {
+            return "INVALID_PASSWORD";
+          } else {
+            return {
+              message: "LOGIN_SUCCESSFUL",
+              details: {
+                token: get_token,
+                name: query_result.rows[0].name,
+                email: query_result.rows[0].email,
+                USD: query_result.rows[0].amount,
+                BTC: query_result.rows[1].amount,
+                ETH: query_result.rows[2].amount,
+              },
+            };
+          }
         } else {
-          response = "ACCOUNT_NOT_VERIFIED";
+          return "ACCOUNT_NOT_VERIFIED";
         }
       } else {
-        response = "EMAIL_NOT_EXIST";
+        return "EMAIL_NOT_EXIST";
       }
     } catch (error) {
       console.log("Error during verification");
@@ -195,21 +213,18 @@ export async function loginUser(loginDetails) {
 
     if (matching) {
       let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
-        expiresIn: "60m",
+        expiresIn: "24h",
       });
       return token;
     } else {
       return "INVALID_PASSWORD";
     }
   }
-
-  return response;
 }
 
 export async function forgotPassword(forgotPasswordDetails) {
   const { email } = forgotPasswordDetails;
   let query_result;
-  let response;
   if (email) {
     try {
       query_result = await database.connection.query(
@@ -227,9 +242,9 @@ export async function forgotPassword(forgotPasswordDetails) {
         const new_password = generateRandomChars();
         setNewPassword(query_result.rows[0].email, new_password);
         sendEmail(query_result.rows[0].email, new_password);
-        response = "SEND_NEW_PASSWORD_TO_USER";
+        return "SEND_NEW_PASSWORD_TO_USER";
       } else {
-        response = "EMAIL_NOT_EXIST";
+        return "EMAIL_NOT_EXIST";
       }
     } catch (error) {
       console.log("Error during sending new password to user's email");
@@ -237,17 +252,27 @@ export async function forgotPassword(forgotPasswordDetails) {
       throw error;
     }
   } else {
-    throw new Error("Bad Request");
+    return "BAD_REQUEST";
   }
 
   function generateRandomChars() {
     let result = "";
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const charactersLength = characters.length;
+    const upper_case = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lower_case = "abcdefghijklmnopqrstuvwxyz";
+    const numbers = "1234567890";
+    const symbols = "!@#$%^&*()-_=+{}:;,<.>[]";
+
     let counter = 0;
-    while (counter < 9) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-      counter += 1;
+    while (counter < 2) {
+      result += upper_case.charAt(
+        Math.floor(Math.random() * upper_case.length)
+      );
+      result += lower_case.charAt(
+        Math.floor(Math.random() * lower_case.length)
+      );
+      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
+      result += symbols.charAt(Math.floor(Math.random() * symbols.length));
+      counter++;
     }
     return result;
   }
@@ -295,6 +320,50 @@ export async function forgotPassword(forgotPasswordDetails) {
       }
     });
   }
+}
 
-  return response;
+export async function logoutUser(userToken) {
+  const { token } = userToken;
+  if (token) {
+    try {
+      blacklist(token);
+      return "LOGOUT_SUCCESS";
+    } catch (error) {
+      console.log("Error when blacklisting token");
+      console.log(error);
+      throw error;
+    }
+  } else {
+    return "BAD_REQUEST";
+  }
+
+  function blacklist(logout_token) {
+    redisClient.sadd("blacklisted", logout_token);
+  }
+}
+
+// This function is just to see if a token is blacklisted or not -Haziq
+export async function checkBlacklist(userToken) {
+  const { token } = userToken;
+
+  if (token) {
+    try {
+      const isBlacklisted = await redisCheckBlacklist(token);
+      if (isBlacklisted == 1) {
+        return "TOKEN_IS_BLACKLISTED";
+      } else {
+        return "TOKEN_IS_VALID";
+      }
+    } catch (error) {
+      console.log("Error when checking");
+      console.log(error);
+      throw error;
+    }
+  } else {
+    return "BAD_REQUEST";
+  }
+
+  function redisCheckBlacklist(token) {
+    return redisClient.sismember("blacklisted", token);
+  }
 }
