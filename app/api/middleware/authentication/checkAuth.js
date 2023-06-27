@@ -10,6 +10,7 @@ const redisClient = new Redis({
 export const checkAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
+    console.log(token);
     let isTokenBlacklisted = await checkBlacklist(token);
     console.log(isTokenBlacklisted);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
@@ -30,10 +31,10 @@ export const checkAuth = async (req, res, next) => {
 
 async function checkBlacklist(userToken) {
   let response;
+  console.log(userToken);
   if (userToken) {
     try {
       const isBlacklisted = await redisCheckBlacklist(userToken);
-      console.log(isBlacklisted);
       if (isBlacklisted == 1) {
         response = "TOKEN_IS_BLACKLISTED";
       } else {
