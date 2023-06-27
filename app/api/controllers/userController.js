@@ -139,7 +139,8 @@ export async function forgotPassword(req, res) {
 
 export async function logoutUser(req, res) {
   try {
-    let response = await UserModel.logoutUser(req.body);
+    const token = req.headers.authorization.split(" ")[1];
+    let response = await UserModel.logoutUser(token);
     if (response !== "LOGOUT_SUCCESS") {
       return res.status(500).json({
         message: response,
