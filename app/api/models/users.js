@@ -74,17 +74,17 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
       subject: "Email Verification",
 
-      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}`,
+      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}?email=${email}`,
     };
 
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
       if (error) {
         console.log(Error(error));
-        callback("VERIFICATION_EMAIL_ERROR");
+        return "VERIFICATION_EMAIL_ERROR";
       }
       console.log("VERIFICATION_EMAIL_SENT");
       console.log(info);
-      callback("VERIFICATION_EMAIL_SENT");
+      return "VERIFICATION_EMAIL_SENT";
     });
   } catch (error) {
     throw Error(error);
@@ -134,6 +134,20 @@ const addUserWallets = async (userEmail) => {
   let insert_empty_wallet_query =
     "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) SELECT 'USD', 0, u.id FROM cryptHubSchema.users AS u union all select 'BTC', 0, u.id FROM cryptHubSchema.users AS u union all select 'ETH', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1";
   await database.connection.query(insert_empty_wallet_query, values);
+};
+
+export const checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired = (
+  user_email
+) => {
+  const { email } = user_email;
+  let value = [email];
+  let check_account_verified =
+    "SELECT account_verified FROM crypthubschema.users WHERE email=$1";
+  let check_account_verified_query = database.connection.query(
+    check_account_verified,
+    value
+  );
+  return check_account_verified_query;
 };
 
 export async function loginUser(loginDetails) {
