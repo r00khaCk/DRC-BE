@@ -12,10 +12,8 @@ export const checkAuth = async (req, res, next) => {
     const token = req.headers.authorization.split(" ")[1];
     console.log(token);
     let isTokenBlacklisted = await checkBlacklist(token);
-    console.log(isTokenBlacklisted);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
-      const decoded = jwt.verify(token, env.SECRET_KEY);
-      req.userEmail = decoded;
+      jwt.verify(token, env.SECRET_KEY);
       next();
     } else {
       return res.status(401).json({

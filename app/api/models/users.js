@@ -136,7 +136,7 @@ const addUserWallets = async (userEmail) => {
   console.log(userEmail);
   let values = [userEmail];
   let insert_empty_wallet_query =
-    "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) SELECT 'USD', 0, u.id FROM cryptHubSchema.users AS u union all select 'BTC', 0, u.id FROM cryptHubSchema.users AS u union all select 'ETH', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1";
+    "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) SELECT 'USD', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1 UNION ALL SELECT 'BTC', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1 UNION ALL SELECT 'ETH', 0, u.id FROM cryptHubSchema.users AS u WHERE u.email = $1;";
   await database.connection.query(insert_empty_wallet_query, values);
 };
 
@@ -154,8 +154,8 @@ export const checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired = (
   return check_account_verified_query;
 };
 
-export async function loginUser(loginDetails) {
-  const { email, password } = loginDetails;
+export async function loginUser(login_details) {
+  const { email, password } = login_details;
   let query_result;
   if (email && password) {
     try {
@@ -323,7 +323,7 @@ export async function forgotPassword(forgotPasswordDetails) {
 }
 
 export async function logoutUser(user_token) {
-  const  token  = user_token;
+  const token = user_token;
   if (token) {
     try {
       blacklist(token);
