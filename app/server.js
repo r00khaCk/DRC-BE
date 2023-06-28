@@ -6,6 +6,7 @@ import morgan from "morgan";
 // import cookieParser from "cookie-parser";
 import * as UserRouter from "./api/routes/userRoute.js";
 import * as TradeRouter from "./api/routes/tradeRoute.js";
+import * as WalletRouter from "./api/routes/walletRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
 import testRouter from "./api/routes/test-route.js";
 
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 
 app.use("/user", UserRouter.router);
 app.use("/trade", checkAuth, TradeRouter.router);
+app.use("/wallet", checkAuth, WalletRouter.router);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
@@ -46,5 +48,4 @@ app.use("/trade", checkAuth, TradeRouter.router);
 //     res.status(500).send({ error });
 //   }
 // });
-
 app.listen(5000, () => console.log("Server running on port 5000"));
