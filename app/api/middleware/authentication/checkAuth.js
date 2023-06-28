@@ -11,10 +11,8 @@ export const checkAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
     let isTokenBlacklisted = await checkBlacklist(token);
-    console.log(isTokenBlacklisted);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
-      const decoded = jwt.verify(token, env.SECRET_KEY);
-      req.userEmail = decoded;
+      jwt.verify(token, env.SECRET_KEY);
       next();
     } else {
       return res.status(401).json({
@@ -33,7 +31,6 @@ async function checkBlacklist(userToken) {
   if (userToken) {
     try {
       const isBlacklisted = await redisCheckBlacklist(userToken);
-      console.log(isBlacklisted);
       if (isBlacklisted == 1) {
         response = "TOKEN_IS_BLACKLISTED";
       } else {

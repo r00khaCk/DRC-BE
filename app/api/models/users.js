@@ -154,8 +154,8 @@ export const checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired = (
   return check_account_verified_query;
 };
 
-export async function loginUser(loginDetails) {
-  const { email, password } = loginDetails;
+export async function loginUser(login_details) {
+  const { email, password } = login_details;
   let query_result;
   if (email && password) {
     try {

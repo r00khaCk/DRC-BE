@@ -28,8 +28,12 @@ CREATE TABLE cryptHubSchema.transactions (
   transaction_date TIMESTAMP
 );
 
-CREATE TABLE cryptHubSchema.deposit (
-  deposit_id SERIAL PRIMARY KEY,
+CREATE TABLE cryptHubSchema.deposit_withdrawal_transactions (
+  dwt_id SERIAL PRIMARY KEY,
   wallet_id INT REFERENCES cryptHubSchema.wallet(wallet_id),
-  deposit_amount DECIMAL(10, 2)
+  dwt_type VARCHAR,
+  dwt_amount DECIMAL(10, 2),
+  dwt_before DECIMAL(10,2),
+  dwt_after DECIMAL(10,2),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
