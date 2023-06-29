@@ -5,136 +5,165 @@ const env = process.env;
 
 // buy function
 export const buyCoinsModel = async (order_information, req_header) => {
-  //access the email from the token to be used in SQL query
-  const token = req_header.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  let user_email = decoded.email;
-  console.log("User email from token: ", user_email);
-  console.log("Buy order from user: ", order_information);
+  if (order_information && req_header) {
+    //access the email from the token to be used in SQL query
+    const token = req_header.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, env.SECRET_KEY);
+    let user_email = decoded.email;
+    console.log("User email from token: ", user_email);
+    console.log("Buy order from user: ", order_information);
 
-  // gets the returned value from calculateTotalModel() and stores it in calculate_total_model_result
-  const calculate_total_model_result = await calculateTotalModel(
-    order_information,
-    user_email
-  );
-  console.log(
-    "Variable calculate_total_model_result: ",
-    calculate_total_model_result
-  );
-  //checks the returned value of the calculate_total_model_result()
-  if (calculate_total_model_result.status === "BALANCE_INSUFFICIENT") {
-    return { status: "BALANCE_INSUFFICIENT" };
-  } else if (calculate_total_model_result.status === "BALANCE_SUFFICIENT") {
-    //calculates the new balance for the USD wallet
-    let balance_from_wallet =
-      calculate_total_model_result.wallet_balance.rows[0].amount;
-    const new_balance =
-      balance_from_wallet - calculate_total_model_result.total_amount;
-    console.log("New balance for USD wallet: ", new_balance);
-    // query to update the USD wallet
-    let balance_values = [new_balance.toFixed(2), user_email];
-    let update_usd_wallet =
-      "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = 'USD'";
-    let update_wallet_query = await database.connection.query(
-      update_usd_wallet,
-      balance_values
-    );
-    console.log(update_wallet_query);
-
-    //adds the bought coin into the user wallet (currency based on order)
-    addBoughtCurrencyIntoWallet(
+    // gets the returned value from calculateTotalBuyAmount() and stores it in calculate_total_model_result
+    const calculate_total_model_result = await calculateTotalBuyAmount(
       order_information,
-      calculate_total_model_result.coin_amount,
       user_email
     );
+    console.log(
+      "Variable calculate_total_model_result: ",
+      calculate_total_model_result
+    );
+    //checks the returned value of the calculate_total_model_result()
+    if (calculate_total_model_result.status === "BALANCE_INSUFFICIENT") {
+      return { status: "BALANCE_INSUFFICIENT" };
+    } else if (calculate_total_model_result.status === "BALANCE_SUFFICIENT") {
+      //calculates the new balance for the USD wallet
+      let balance_from_wallet =
+        calculate_total_model_result.wallet_balance.rows[0].amount;
+      const new_balance =
+        balance_from_wallet - calculate_total_model_result.total_amount;
+      console.log("New balance for USD wallet: ", new_balance);
+      // query to update the USD wallet
+      let balance_values = [new_balance.toFixed(2), user_email];
+      let update_usd_wallet =
+        "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = 'USD'";
+      try {
+        let update_wallet_query = await database.connection.query(
+          update_usd_wallet,
+          balance_values
+        );
+        console.log(update_wallet_query);
 
-    // gets all the current wallet amount
-    let get_all_wallet_balance = await getAllWalletBalance(user_email);
-    console.log(get_all_wallet_balance.balance.rows);
+        //adds the bought coin into the user wallet (currency based on order)
+        addBoughtCurrencyIntoWallet(
+          order_information,
+          calculate_total_model_result.coin_amount,
+          user_email
+        );
 
-    // return result
-    const { coin_currency } = order_information;
-    return {
-      status: "BUY_SUCCESS",
-      wallet_balance: get_all_wallet_balance.balance.rows,
-      coin_currency: coin_currency,
-    };
+        // gets all the current wallet amount
+        let get_all_wallet_balance = await getAllWalletBalance(user_email);
+        console.log(get_all_wallet_balance.balance.rows);
+
+        const { coin_currency } = order_information;
+
+        addTransactionToTransactionHistory(
+          user_email,
+          calculate_total_model_result.total_amount,
+          coin_currency,
+          "buy"
+        );
+
+        // return result
+        return {
+          status: "BUY_SUCCESS",
+          wallet_balance: get_all_wallet_balance.balance.rows,
+          coin_currency: coin_currency,
+        };
+      } catch (error) {
+        console.log("Error from buy transaction", error);
+        return { status: "QUERY_FAILED" };
+      }
+    }
+  } else {
+    return { status: "BAD_REQUEST" };
   }
 };
 
 // sell owned BTC or ETH coins
 export const sellCoinsModel = async (order_information, req_header) => {
-  const token = req_header.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  let user_email = decoded.email;
-  console.log("User email from token: ", user_email);
-  console.log("Sell order from user: ", order_information);
+  if (order_information && req_header) {
+    const token = req_header.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, env.SECRET_KEY);
+    let user_email = decoded.email;
+    console.log("User email from token: ", user_email);
+    console.log("Sell order from user: ", order_information);
 
-  // calculates the total amount earned from selling
-  const calculate_total_earned_result = await calculateTotalEarned(
-    order_information,
-    user_email
-  );
-
-  console.log(
-    "Variable calculate_total_earned_result: ",
-    calculate_total_earned_result
-  );
-
-  // checks if there is enough coins to be sold
-  if (calculate_total_earned_result.status === "INSUFFICIENT_COIN_AMOUNT") {
-    return { status: "INSUFFICIENT_COIN_AMOUNT" };
-  } else if (
-    calculate_total_earned_result.status === "SUFFICIENT_COIN_AMOUNT"
-  ) {
-    let coin_balance_from_wallet =
-      calculate_total_earned_result.coin_balance.rows[0].amount;
-
-    let coin_currency = calculate_total_earned_result.coin_currency;
-    console.log("Coin currency: ", coin_currency);
-
-    // calculates the new coin balance
-    const new_coin_balance =
-      coin_balance_from_wallet - calculate_total_earned_result.coin_amount;
-    console.log("New coin balance for wallet: ", new_coin_balance);
-
-    // updates the sold coin's balance
-    let coin_balance_values = [new_coin_balance, user_email, coin_currency];
-    let update_coin_balance_query =
-      "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = $3";
-    try {
-      let update_coin_balance = await database.connection.query(
-        update_coin_balance_query,
-        coin_balance_values
-      );
-      console.log(update_coin_balance);
-    } catch (error) {
-      console.log("Error for update_coin_balance: ", error);
-      return { status: "PG_UPDATE_ERROR" };
-    }
-
-    // function to add the earned amount from sale to the USD wallet
-    addEarnedAmountIntoUSDWallet(
-      user_email,
-      calculate_total_earned_result.total_earned,
-      order_information
+    // calculates the total amount earned from selling
+    const calculate_total_earned_result = await calculateTotalEarned(
+      order_information,
+      user_email
     );
 
-    // gets all the current wallet amount
-    let get_all_wallet_balance = await getAllWalletBalance(user_email);
-    console.log(get_all_wallet_balance.balance.rows);
+    console.log(
+      "Variable calculate_total_earned_result: ",
+      calculate_total_earned_result
+    );
 
-    return {
-      status: "SELL_SUCCESS",
-      wallet_balance: get_all_wallet_balance.balance.rows,
-      coin_currency: coin_currency,
-    };
+    // checks if there is enough coins to be sold
+    if (calculate_total_earned_result.status === "INSUFFICIENT_COIN_AMOUNT") {
+      return { status: "INSUFFICIENT_COIN_AMOUNT" };
+    } else if (
+      calculate_total_earned_result.status === "SUFFICIENT_COIN_AMOUNT"
+    ) {
+      let coin_balance_from_wallet =
+        calculate_total_earned_result.coin_balance.rows[0].amount;
+
+      let coin_currency = calculate_total_earned_result.coin_currency;
+      console.log("Coin currency: ", coin_currency);
+
+      // calculates the new coin balance
+      const new_coin_balance =
+        coin_balance_from_wallet - calculate_total_earned_result.coin_amount;
+      console.log("New coin balance for wallet: ", new_coin_balance);
+
+      // updates the sold coin's balance
+      let coin_balance_values = [new_coin_balance, user_email, coin_currency];
+      let update_coin_balance_query =
+        "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = $3";
+
+      try {
+        let update_coin_balance = await database.connection.query(
+          update_coin_balance_query,
+          coin_balance_values
+        );
+        console.log(update_coin_balance);
+
+        // function to add the earned amount from sale to the USD wallet
+        addEarnedAmountIntoUSDWallet(
+          user_email,
+          calculate_total_earned_result.total_earned,
+          order_information
+        );
+
+        // gets all the current wallet amount
+        let get_all_wallet_balance = await getAllWalletBalance(user_email);
+        console.log(get_all_wallet_balance.balance.rows);
+
+        addTransactionToTransactionHistory(
+          user_email,
+          calculate_total_earned_result.total_earned,
+          coin_currency,
+          "sell"
+        );
+
+        return {
+          status: "SELL_SUCCESS",
+          wallet_balance: get_all_wallet_balance.balance.rows,
+          coin_currency: coin_currency,
+        };
+      } catch (error) {
+        console.log("Error from buy transaction", error);
+        return { status: "QUERY_FAILED" };
+      }
+    }
+  } else {
+    return { status: "BAD_REQUEST" };
   }
 };
 
 //---------Functions that are used in this file only----------------
 // function to calculate total amount to be paid and also checks user's wallet balance
-const calculateTotalModel = async (order_information, user_email) => {
+const calculateTotalBuyAmount = async (order_information, user_email) => {
   try {
     const { current_price, coin_amount } = order_information;
     let total_amount = current_price * coin_amount;
@@ -303,6 +332,26 @@ const getAllWalletBalance = async (user_email) => {
     return { balance: get_all_wallet_balance };
   } catch (error) {
     console.log("Error from get_all_wallet_balance: ", error);
+    throw Error(error);
+  }
+};
+
+// function to add the buy/sell orders to the transaction history
+const addTransactionToTransactionHistory = async (
+  user_email,
+  amount,
+  currency,
+  trade_type
+) => {
+  let values = [amount, currency, trade_type, user_email];
+
+  const add_transaction_query =
+    "INSERT INTO cryptHubSchema.transactions (wallet_id, user_id, transaction_amount, currency, trade_type) SELECT w.wallet_id, u.id, $1, $2, $3 FROM cryptHubSchema.users AS u JOIN cryptHubSchema.wallet AS w ON u.id = w.user_id WHERE u.email = $4 AND w.currency = $2";
+
+  try {
+    await database.connection.query(add_transaction_query, values);
+  } catch (error) {
+    console.log("Error from add_transaction_query: ", error);
     throw Error(error);
   }
 };
