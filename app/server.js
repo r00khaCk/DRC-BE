@@ -7,6 +7,7 @@ import morgan from "morgan";
 import * as UserRouter from "./api/routes/userRoute.js";
 import * as TradeRouter from "./api/routes/tradeRoute.js";
 import * as WalletRouter from "./api/routes/walletRoute.js";
+import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
 import testRouter from "./api/routes/test-route.js";
 
@@ -41,6 +42,7 @@ app.use((req, res, next) => {
 app.use("/user", UserRouter.router);
 app.use("/trade", checkAuth, TradeRouter.router);
 app.use("/wallet", checkAuth, WalletRouter.router);
+app.use("/transaction", checkAuth, TransactionRouter.router);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
