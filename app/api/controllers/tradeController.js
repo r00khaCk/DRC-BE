@@ -45,7 +45,7 @@ export const sellTrade = async (req, res) => {
       message: "BAD_REQUEST",
     });
   }
-  return res.status(400).json({
+  return res.status(200).json({
     message: "SELL_ORDER_SUCCESS",
     details: {
       coinCurrency: sell_order.coin_currency,
