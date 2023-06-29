@@ -15,17 +15,20 @@ CREATE TABLE cryptHubSchema.users (
 CREATE TABLE cryptHubSchema.wallet (
   wallet_id SERIAL PRIMARY KEY,
   user_id INT REFERENCES cryptHubSchema.users(id),
-  currency VARCHAR(50),
+  currency TEXT,
   amount FLOAT,
   CONSTRAINT unique_user_currency UNIQUE (user_id, currency)
 );
 
+CREATE TYPE tradeType AS ENUM ('buy','sell');
 CREATE TABLE cryptHubSchema.transactions (
   transaction_id SERIAL PRIMARY KEY,
   wallet_id INT REFERENCES cryptHubSchema.wallet(wallet_id),
   user_id INT REFERENCES cryptHubSchema.users(id),
   transaction_amount DECIMAL(10, 2),
-  transaction_date TIMESTAMP
+  currency TEXT,
+  trade_type tradeType,
+  transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cryptHubSchema.deposit_withdrawal_transactions (
