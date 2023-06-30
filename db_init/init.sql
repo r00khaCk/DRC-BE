@@ -25,7 +25,9 @@ CREATE TABLE cryptHubSchema.transactions (
   transaction_id SERIAL PRIMARY KEY,
   wallet_id INT REFERENCES cryptHubSchema.wallet(wallet_id),
   user_id INT REFERENCES cryptHubSchema.users(id),
-  transaction_amount DECIMAL(10, 2),
+  transaction_amount FLOAT,
+  coin_amount FLOAT,
+  commission_deduction_5 FLOAT,
   currency TEXT,
   trade_type tradeType,
   transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
