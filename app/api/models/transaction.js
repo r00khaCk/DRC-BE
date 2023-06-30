@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 const env = process.env;
 
 // function to get all transactions
-export const getAllTransactions = async (request_body, request_headers) => {
+export const getAllTransactions = async (request_headers) => {
   let user_email = await getEmail(request_headers);
   if (user_email) {
     let value = [user_email];
