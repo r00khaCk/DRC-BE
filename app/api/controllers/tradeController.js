@@ -19,8 +19,8 @@ export const buyTrade = async (req, res) => {
       message: "BUY_ORDER_SUCCESS",
       details: {
         coinCurrency: buy_order.coin_currency,
-        usdWalletBalance: {
-          USD: buy_order.wallet_balance[0].amount.toFixed(2),
+        walletBalance: {
+          USD: Number(buy_order.wallet_balance[0].amount.toFixed(2)),
           BTC: buy_order.wallet_balance[1].amount,
           ETH: buy_order.wallet_balance[2].amount,
         },
