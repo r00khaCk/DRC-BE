@@ -59,6 +59,8 @@ export const buyCoinsModel = async (order_information, req_header) => {
         addTransactionToTransactionHistory(
           user_email,
           calculate_total_model_result.total_amount,
+          calculate_total_model_result.coin_amount,
+          0,
           coin_currency,
           "buy"
         );
@@ -131,7 +133,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
         // function to add the earned amount from sale to the USD wallet
         addEarnedAmountIntoUSDWallet(
           user_email,
-          calculate_total_earned_result.total_earned,
+          calculate_total_earned_result.total_earned_after_commission_deduction,
           order_information
         );
 
@@ -141,7 +143,9 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
         addTransactionToTransactionHistory(
           user_email,
-          calculate_total_earned_result.total_earned,
+          calculate_total_earned_result.total_earned_after_commission_deduction,
+          calculate_total_earned_result.coin_amount,
+          calculate_total_earned_result.commission_deduction,
           coin_currency,
           "sell"
         );
@@ -203,6 +207,18 @@ const calculateTotalEarned = async (order_information, user_email) => {
     order_information;
   let total_earned = coin_amount * current_selling_price;
 
+  // calculate 5% commission deduction from calculate_total_earned_result.total_earned
+  let commission_deduction = total_earned * 0.05;
+  console.log("Commission amount: ", commission_deduction);
+
+  let total_earned_after_commission_deduction =
+    total_earned - commission_deduction;
+
+  console.log(
+    "Total earned after commission deduction: ",
+    total_earned_after_commission_deduction
+  );
+
   let values = [user_email, coin_currency];
 
   let get_coin_balance_query =
@@ -221,7 +237,8 @@ const calculateTotalEarned = async (order_information, user_email) => {
     } else {
       return {
         status: "SUFFICIENT_COIN_AMOUNT",
-        total_earned,
+        total_earned_after_commission_deduction,
+        commission_deduction,
         coin_balance,
         coin_amount,
         coin_currency,
@@ -340,13 +357,22 @@ const getAllWalletBalance = async (user_email) => {
 const addTransactionToTransactionHistory = async (
   user_email,
   amount,
+  coin_amount,
+  commission,
   currency,
   trade_type
 ) => {
-  let values = [amount, currency, trade_type, user_email];
+  let values = [
+    amount,
+    coin_amount,
+    commission,
+    currency,
+    trade_type,
+    user_email,
+  ];
 
   const add_transaction_query =
-    "INSERT INTO cryptHubSchema.transactions (wallet_id, user_id, transaction_amount, currency, trade_type) SELECT w.wallet_id, u.id, $1, $2, $3 FROM cryptHubSchema.users AS u JOIN cryptHubSchema.wallet AS w ON u.id = w.user_id WHERE u.email = $4 AND w.currency = $2";
+    "INSERT INTO cryptHubSchema.transactions (wallet_id, user_id, transaction_amount,coin_amount,commission_deduction_5, currency, trade_type) SELECT w.wallet_id, u.id, $1, $2, $3, $4, $5 FROM cryptHubSchema.users AS u JOIN cryptHubSchema.wallet AS w ON u.id = w.user_id WHERE u.email = $6 AND w.currency = $4";
 
   try {
     await database.connection.query(add_transaction_query, values);
