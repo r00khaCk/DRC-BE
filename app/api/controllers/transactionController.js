@@ -2,10 +2,7 @@ import * as TransactionModel from "../models/transaction.js";
 
 export const getAllTransactions = async (req, res) => {
   console.log(req.headers);
-  let get_transactions = await TransactionModel.getAllTransactions(
-    req.body,
-    req.headers
-  );
+  let get_transactions = await TransactionModel.getAllTransactions(req.headers);
 
   if (get_transactions.status === "BAD_REQUEST") {
     return res.status(400).json({
