@@ -136,6 +136,29 @@ export async function forgotPassword(req, res) {
     });
   }
 }
+export async function resetPassword(req, res) {
+  try {
+    let response = await UserModel.resetPassword(req.headers, req.body);
+    console.log(response, "HERE");
+    if (response == "RESET_PASSWORD_SUCCESS") {
+      return res.status(201).json({
+        message: response,
+      });
+    } else if (response == "INVALID_PASSWORD") {
+      return res.status(401).json({
+        message: response,
+      });
+    } else {
+      return res.status(500).json({
+        message: response,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error,
+    });
+  }
+}
 
 export async function logoutUser(req, res) {
   try {
