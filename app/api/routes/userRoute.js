@@ -15,6 +15,7 @@ router.post(
   UserController.loginUser
 );
 router.post("/forgotPassword", UserController.forgotPassword);
+router.post("/resetPassword", checkAuth, UserController.resetPassword);
 router.post("/logoutUser", checkAuth, UserController.logoutUser);
 router.post("/checkBlacklist", UserController.checkBlacklist);
 

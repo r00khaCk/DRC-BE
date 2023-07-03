@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken";
 
 const env = process.env;
 
-export async function walletDeposit(header_details, deposit_amount) {
-  const amount = deposit_amount.amount;
+export async function walletDeposit(header_details, body_details) {
+  const amount = body_details.amount;
   const email = await getEmail(header_details);
 
   if (amount && email) {
