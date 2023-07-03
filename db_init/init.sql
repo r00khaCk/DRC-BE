@@ -12,10 +12,12 @@ CREATE TABLE cryptHubSchema.users (
   account_verified BOOLEAN
 );
 
+CREATE TYPE currencyType AS ENUM ('USD','BTC','ETH');
+
 CREATE TABLE cryptHubSchema.wallet (
   wallet_id SERIAL PRIMARY KEY,
   user_id INT REFERENCES cryptHubSchema.users(id),
-  currency TEXT,
+  currency currencyType,
   amount FLOAT,
   CONSTRAINT unique_user_currency UNIQUE (user_id, currency)
 );
@@ -28,7 +30,7 @@ CREATE TABLE cryptHubSchema.transactions (
   transaction_amount FLOAT,
   coin_amount FLOAT,
   commission_deduction_5 FLOAT,
-  currency TEXT,
+  currency currencyType,
   trade_type tradeType,
   transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -41,4 +43,35 @@ CREATE TABLE cryptHubSchema.deposit_withdrawal_transactions (
   dwt_before DECIMAL(10,2),
   dwt_after DECIMAL(10,2),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";  
+CREATE TABLE cryptHubSchema.p2p_contracts (
+  contract_id uuid DEFAULT uuid_generate_v4(),
+  seller_id INT REFERENCES cryptHubSchema.users(id),
+  currency currencyType,
+  coin_amount FLOAT,
+  selling_price FLOAT,
+  created_at TIMESTAMP
+);
+ 
+CREATE TABLE cryptHubSchema.p2p_completed_contracts (
+  contract_id uuid DEFAULT uuid_generate_v4(),
+  seller_id INT REFERENCES cryptHubSchema.users(id),
+  currency currencyType,
+  coin_amount FLOAT,
+  selling_price FLOAT,
+  created_at TIMESTAMP,
+  bought_at TIMESTAMP
+);
+
+CREATE TABLE cryptHubSchema.p2p_deleted_contracts (
+  contract_id uuid DEFAULT uuid_generate_v4(),
+  seller_id INT REFERENCES cryptHubSchema.users(id),
+  currency currencyType,
+  coin_amount FLOAT,
+  selling_price FLOAT,
+  created_at TIMESTAMP,
+  bought_at TIMESTAMP,
+  deleted_at TIMESTAMP
 );
