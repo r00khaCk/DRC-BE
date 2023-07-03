@@ -29,7 +29,6 @@ export const registerNewUserModel = async (registerDetails) => {
         return "PASSWORD_HASHING_ERROR";
       } else {
         let hashPassword = hash;
-        let response;
         // Check if email, name, and password are true
         if (name && email && hashPassword) {
           let values = [name, email, hashPassword, 0];
@@ -209,7 +208,6 @@ export async function loginUser(login_details) {
 
   async function checkPassword(received_password, actual_password, userEmail) {
     const matching = await bcrypt.compare(received_password, actual_password);
-    console.log(matching);
 
     if (matching) {
       let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
@@ -319,6 +317,54 @@ export async function forgotPassword(forgotPasswordDetails) {
         console.log("Email sent: " + info.response);
       }
     });
+  }
+}
+
+export async function resetPassword(header_details, body_details) {
+  const email = await getEmail(header_details);
+  const { old_password, new_password } = body_details;
+  let query_result;
+  if (email && old_password && new_password) {
+    try {
+      query_result = await database.connection.query(
+        "SELECT password FROM crypthubschema.users WHERE email = $1",
+        [email]
+      );
+      if (query_result.rows.length) {
+        const actual_password = query_result.rows[0].password;
+        //Too many if else, feels bad :( , need to clean this before pushing to prod - Haziq
+        const matching = await bcrypt.compare(old_password, actual_password);
+        if (matching) {
+          try {
+            let hash_result = await bcrypt.hash(new_password, 10);
+            if (hash_result == "PASSWORD_HASHING_ERROR") return hash_result;
+            await database.connection.query(
+              "UPDATE crypthubschema.users SET password = $1 WHERE email = $2",
+              [hash_result, email]
+            );
+            return "RESET_PASSWORD_SUCCESS";
+          } catch (error) {
+            return "PASSWORD_HASHING_ERROR";
+          }
+        } else {
+          return "INVALID_PASSWORD";
+        }
+      } else {
+        return "FAILED_TO_FETCH_USER";
+      }
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  } else {
+    return "BAD_REQUEST";
+  }
+
+  function getEmail(req_headers) {
+    const token = req_headers.authorization.split(" ")[1];
+    const decoded = jwt.verify(token, env.SECRET_KEY);
+    const email = decoded.email;
+    return email;
   }
 }
 
