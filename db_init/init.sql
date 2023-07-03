@@ -9,7 +9,8 @@ CREATE TABLE cryptHubSchema.users (
   name VARCHAR(100),
   email VARCHAR(100),
   password VARCHAR(150),
-  account_verified BOOLEAN
+  account_verified BOOLEAN,
+  last_login TIMESTAMP
 );
 
 CREATE TABLE cryptHubSchema.wallet (
