@@ -56,7 +56,7 @@ CREATE TABLE cryptHubSchema.p2p_contracts (
 );
  
 CREATE TABLE cryptHubSchema.p2p_completed_contracts (
-  contract_id uuid DEFAULT uuid_generate_v4(),
+  contract_id VARCHAR(120),
   seller_id INT REFERENCES cryptHubSchema.users(id),
   currency currencyType,
   coin_amount FLOAT,
@@ -66,7 +66,7 @@ CREATE TABLE cryptHubSchema.p2p_completed_contracts (
 );
 
 CREATE TABLE cryptHubSchema.p2p_deleted_contracts (
-  contract_id uuid DEFAULT uuid_generate_v4(),
+  contract_id VARCHAR(120),
   seller_id INT REFERENCES cryptHubSchema.users(id),
   currency currencyType,
   coin_amount FLOAT,
