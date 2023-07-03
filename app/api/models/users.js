@@ -174,10 +174,14 @@ export async function loginUser(login_details) {
           let get_token = await checkPassword(
             password,
             query_result.rows[0].password,
-            query_result.rows[0].email
+            query_result.rows[0].email,
+            query_result.rows[0].last_login
           );
-          if (get_token == "INVALID_PASSWORD") {
-            return "INVALID_PASSWORD";
+          if (
+            get_token == "INVALID_PASSWORD" ||
+            get_token == "FAILED_TO_SET_TIMESTAMP"
+          ) {
+            return get_token;
           } else {
             return {
               message: "LOGIN_SUCCESSFUL",
@@ -206,11 +210,21 @@ export async function loginUser(login_details) {
     throw new Error("Bad Request");
   }
 
-  async function checkPassword(received_password, actual_password, userEmail) {
+  async function checkPassword(
+    received_password,
+    actual_password,
+    user_email,
+    user_id
+  ) {
     const matching = await bcrypt.compare(received_password, actual_password);
 
     if (matching) {
-      let token = jwt.sign({ email: userEmail }, env.SECRET_KEY, {
+      let query_result = await database.connection.query(
+        "UPDATE crypthubschema.users SET last_login = to_timestamp($1) RETURNING *",
+        [Date.now() / 1000]
+      );
+      if (query_result.rows.length == 0) return "FAILED_TO_SET_TIMESTAMP";
+      let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
         expiresIn: "24h",
       });
       return token;
@@ -338,10 +352,11 @@ export async function resetPassword(header_details, body_details) {
           try {
             let hash_result = await bcrypt.hash(new_password, 10);
             if (hash_result == "PASSWORD_HASHING_ERROR") return hash_result;
-            await database.connection.query(
+            let query_result2 = await database.connection.query(
               "UPDATE crypthubschema.users SET password = $1 WHERE email = $2",
               [hash_result, email]
             );
+            if (query_result2.rows.length == 0) return "RESET_PASSWORD_FAILURE";
             return "RESET_PASSWORD_SUCCESS";
           } catch (error) {
             return "PASSWORD_HASHING_ERROR";
