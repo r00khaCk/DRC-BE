@@ -175,7 +175,7 @@ export async function loginUser(login_details) {
             password,
             query_result.rows[0].password,
             query_result.rows[0].email,
-            query_result.rows[0].last_login
+            query_result.rows[0].id
           );
           if (
             get_token == "INVALID_PASSWORD" ||
