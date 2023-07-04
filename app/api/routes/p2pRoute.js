@@ -4,3 +4,9 @@ import { checkAuth } from "../middleware/authentication/checkAuth.js";
 export const router = express.Router();
 
 router.post("/addP2PContract", checkAuth, P2PController.addP2PContract);
+router.get("/getOpenContracts", P2PController.getAllOpenContracts);
+router.get(
+  "/getOngoingContracts",
+  checkAuth,
+  P2PController.getOngoingContracts
+);
