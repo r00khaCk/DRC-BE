@@ -1,5 +1,10 @@
+-- change the timezone
+ALTER DATABASE crypthub_db_2
+SET TIMEZONE TO 'Asia/Kuala_Lumpur';
+
 -- Connect to the newly created database
 \c crypthub_db_2;
+
 
 CREATE SCHEMA IF NOT EXISTS cryptHubSchema;
 
@@ -34,6 +39,7 @@ CREATE TABLE cryptHubSchema.transactions (
   transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TYPE tradeType AS ENUM ('deposit','withdraw');
 CREATE TABLE cryptHubSchema.deposit_withdrawal_transactions (
   dwt_id SERIAL PRIMARY KEY,
   wallet_id INT REFERENCES cryptHubSchema.wallet(wallet_id),
@@ -51,7 +57,7 @@ CREATE TABLE cryptHubSchema.p2p_contracts (
   currency TEXT,
   coin_amount FLOAT,
   selling_price FLOAT,
-  created_at TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
  
 CREATE TABLE cryptHubSchema.p2p_completed_contracts (
@@ -61,7 +67,7 @@ CREATE TABLE cryptHubSchema.p2p_completed_contracts (
   coin_amount FLOAT,
   selling_price FLOAT,
   created_at TIMESTAMP,
-  bought_at TIMESTAMP
+  bought_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE cryptHubSchema.p2p_deleted_contracts (
@@ -72,5 +78,5 @@ CREATE TABLE cryptHubSchema.p2p_deleted_contracts (
   selling_price FLOAT,
   created_at TIMESTAMP,
   bought_at TIMESTAMP,
-  deleted_at TIMESTAMP
+  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

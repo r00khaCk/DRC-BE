@@ -13,3 +13,17 @@ export async function walletDeposit(req, res) {
     });
   }
 }
+
+export async function walletWithdraw(req, res) {
+  try {
+    let response = await WalletModel.walletWithdraw(req.headers, req.body);
+    return res.status(201).json({
+      message: response.message,
+      details: response.details,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error,
+    });
+  }
+}
