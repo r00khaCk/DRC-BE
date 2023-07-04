@@ -6,6 +6,6 @@ export const router = express.Router();
 
 router.post("/walletDeposit", checkAuth, WalletController.walletDeposit);
 router.post("/walletWithdraw", checkAuth, WalletController.walletWithdraw);
-router.post("/walletTransaction", checkAuth, WalletController.walletTransaction);
+router.get("/walletTransaction", checkAuth, WalletController.walletTransaction);
 
 

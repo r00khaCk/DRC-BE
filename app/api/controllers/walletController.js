@@ -36,7 +36,7 @@ export async function walletWithdraw(req, res) {
 
 export async function walletTransaction(req, res) {
   try {
-    let response = await WalletModel.walletTransaction(req.headers, req.body);
+    let response = await WalletModel.walletTransaction(req.headers);
     return res.status(201).json({
       message: response.message,
       details: response.details,
