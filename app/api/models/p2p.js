@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 const env = process.env;
 
-export const addNewP2PContract = async (
+export const addNewP2PContractModel = async (
   contract_information,
   request_header
 ) => {
