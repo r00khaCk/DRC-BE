@@ -98,9 +98,38 @@ export async function walletWithdraw(header_details, body_details) {
   }
 }
 
+export async function walletTransaction(header_details) {
+  const user_id = await getID(header_details);
+  if (user_id) {
+    try {
+      const query_result = await database.connection.query(
+        "SELECT u.* FROM crypthubschema.deposit_withdrawal_transactions as u JOIN crypthubschema.wallet as i  on u.wallet_id = i.wallet_id WHERE user_id = $1",
+        [user_id]
+      );
+      if (query_result.rows.length == 0) return "FAILED_TO_FETCH_TRANSACTION";
+      return {
+        message: "Success",
+        details: query_result.rows,
+      };
+    } catch (error) {
+      console.log(error);
+      return "REQUEST_FAILED";
+    }
+  } else {
+    return "BAD_REQUEST";
+  }
+}
+
 function getEmail(req_headers) {
   const token = req_headers.authorization.split(" ")[1];
   const decoded = jwt.verify(token, env.SECRET_KEY);
   const email = decoded.email;
   return email;
+}
+
+function getID(req_headers) {
+  const token = req_headers.authorization.split(" ")[1];
+  const decoded = jwt.verify(token, env.SECRET_KEY);
+  const id = decoded.id;
+  return id;
 }
