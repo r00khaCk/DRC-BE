@@ -292,15 +292,15 @@ export async function forgotPassword(forgotPasswordDetails) {
   function setNewPassword(user_email, new_password) {
     bcrypt.hash(new_password, 10, async (err, hash) => {
       if (err) {
-        console.log("Error when hashing password");
-        return;
+        return "PASSWORD_HASHING_ERROR";
       } else {
         let hashPassword = hash;
         try {
-          database.connection.query(
-            "UPDATE crypthubschema.users SET password = $1 WHERE email = $2",
+          const set_new_password_query = await database.connection.query(
+            "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
             [hashPassword, user_email]
           );
+          if (set_new_password_query == 0) return "QUERY_ERROR";
         } catch (error) {
           console.log(error);
         }
@@ -353,7 +353,7 @@ export async function resetPassword(header_details, body_details) {
             let hash_result = await bcrypt.hash(new_password, 10);
             if (hash_result == "PASSWORD_HASHING_ERROR") return hash_result;
             let query_result2 = await database.connection.query(
-              "UPDATE crypthubschema.users SET password = $1 WHERE email = $2",
+              "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
               [hash_result, email]
             );
             if (query_result2.rows.length == 0) return "RESET_PASSWORD_FAILURE";

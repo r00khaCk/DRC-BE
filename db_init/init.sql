@@ -39,6 +39,7 @@ CREATE TABLE cryptHubSchema.transactions (
   transaction_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TYPE tradeType AS ENUM ('deposit','withdraw');
 CREATE TABLE cryptHubSchema.deposit_withdrawal_transactions (
   dwt_id SERIAL PRIMARY KEY,
   wallet_id INT REFERENCES cryptHubSchema.wallet(wallet_id),
