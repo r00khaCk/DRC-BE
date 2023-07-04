@@ -1,6 +1,8 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
 
+const env = process.env;
+
 export const addNewP2PContract = async (
   contract_information,
   request_header
@@ -9,13 +11,26 @@ export const addNewP2PContract = async (
    * contract_information = {coin_amount, selling_price, currency}
    * request_header = {email, user_id}
    */
-
   let user_email = await getEmail(request_header);
-  console.log(user_email);
-  const { coin_amount, selling_price, currency } = contract_information;
+  const { currency, coin_amount, selling_price } = contract_information;
 
   if (user_email && coin_amount && selling_price && currency) {
-    let values = [coin_amount, selling_price, currency, user_email];
+    let values = [currency, coin_amount, selling_price, user_email];
+    const add_new_p2p_contract_query =
+      "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) SELECT u.id, $1, $2, $3 FROM cryptHubSchema.users as u WHERE u.email = $4";
+    try {
+      const add_new_p2p_contract = await database.connection.query(
+        add_new_p2p_contract_query,
+        values
+      );
+
+      return { status: "INPUT_QUERY_SUCCESS" };
+    } catch (error) {
+      console.log("Error from add_new_p2p_contract", new Error(error));
+      return { status: "INPUT_QUERY_FAILURE" };
+    }
+  } else {
+    return { status: "BAD_REQUEST" };
   }
 };
 
