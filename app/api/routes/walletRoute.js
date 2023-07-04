@@ -5,3 +5,5 @@ import { checkAuth } from "../middleware/authentication/checkAuth.js";
 export const router = express.Router();
 
 router.post("/walletDeposit", checkAuth, WalletController.walletDeposit);
+router.post("/walletWithdraw", checkAuth, WalletController.walletWithdraw);
+
