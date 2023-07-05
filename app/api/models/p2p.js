@@ -220,6 +220,56 @@ export async function buyContract(req_headers, req_body) {
   }
 }
 
+export async function deleteContract(req_headers, req_body) {
+  try {
+    const user_id = await getID(req_headers);
+    const { contract_id } = req_body;
+    if (user_id && contract_id) {
+      const query_contract = await database.connection.query(
+        "SELECT * FROM crypthubschema.p2p_contracts WHERE contract_id = $1",
+        [contract_id]
+      );
+      if (query_contract.rows.length == 0) return "FAILED_TO_FETCH_CONTRACT";
+      if (user_id != query_contract.rows[0].seller_id)
+        return "FAILED_TO_DELETE_CONTRACT";
+      await database.connection.query("BEGIN;");
+      // Insert contract into deleted
+      const query_delete_history = await database.connection.query(
+        "INSERT INTO crypthubschema.p2p_deleted (contract_id, seller_id, currency, coin_amount, selling_price, created_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+        [
+          contract_id,
+          user_id,
+          query_contract.rows[0].currency,
+          query_contract.rows[0].coin_amount,
+          query_contract.rows[0].selling_price,
+          query_contract.rows[0].created_at,
+        ]
+      );
+      if (query_delete_history.rows.length == 0) {
+        await database.connection.query("ROLLBACK;");
+        return "FAILED_TO_DELETE_CONTRACT";
+      }
+      // Delete from open contract
+      const query_delete = await database.connection.query(
+        "DELETE FROM crypthubschema.p2p_contracts WHERE contract_id = $1 RETURNING *",
+        [contract_id]
+      );
+      if (query_delete.rows.length == 0) {
+        await database.connection.query("ROLLBACK;");
+        return "FAILED_TO_DELETE_CONTRACT";
+      }
+      await database.connection.query("COMMIT;");
+      return "CONTRACT_DELETED";
+    } else {
+      return "BAD_REQUEST";
+    }
+  } catch (error) {
+    console.log(error);
+    await database.connection.query("ROLLBACK;");
+    return "REQUEST_FAILED";
+  }
+}
+
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
 const getEmail = (req_headers) => {
   const token = req_headers.authorization.split(" ")[1];
