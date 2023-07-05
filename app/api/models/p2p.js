@@ -107,11 +107,11 @@ export const getOngoingContractsModel = async (request_header) => {
 };
 
 export async function buyContract(req_headers, req_body) {
-  const buyer_id = await getID(req_headers);
-  const { contract_id } = req_body;
-  let contract_currency, contract_currency_id;
-  if (buyer_id && contract_id) {
-    try {
+  try {
+    const buyer_id = await getID(req_headers);
+    const { contract_id } = req_body;
+    let contract_currency, contract_currency_id;
+    if (buyer_id && contract_id) {
       const query_contract = await database.connection.query(
         "SELECT * FROM crypthubschema.p2p_contracts WHERE contract_id = $1",
         [contract_id]
@@ -162,7 +162,6 @@ export async function buyContract(req_headers, req_body) {
         await database.connection.query("ROLLBACK;");
         return "FAILED_TO_BUY_CONTRACT";
       }
-
       // Query for Seller
       const query_seller = await database.connection.query(
         "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
@@ -197,7 +196,6 @@ export async function buyContract(req_headers, req_body) {
         await database.connection.query("ROLLBACK;");
         return "FAILED_TO_BUY_CONTRACT";
       }
-
       // Delete from open contract
       const query_delete = await database.connection.query(
         "DELETE FROM crypthubschema.p2p_contracts WHERE contract_id = $1 RETURNING *",
@@ -207,16 +205,15 @@ export async function buyContract(req_headers, req_body) {
         await database.connection.query("ROLLBACK;");
         return "FAILED_TO_BUY_CONTRACT";
       }
-
       await database.connection.query("COMMIT;");
       return "CONTRACT_PURCHASE_SUCCESFUL";
-    } catch (error) {
-      console.log(error);
-      await database.connection.query("ROLLBACK;");
-      return "REQUEST_FAILED";
+    } else {
+      return "BAD_REQUEST";
     }
-  } else {
-    return "BAD_REQUEST";
+  } catch (error) {
+    console.log(error);
+    await database.connection.query("ROLLBACK;");
+    return "REQUEST_FAILED";
   }
 }
 
