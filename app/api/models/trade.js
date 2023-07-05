@@ -316,7 +316,7 @@ const addEarnedAmountIntoUSDWallet = async (
 };
 
 // gets the current amount of a specific currency
-const getCurrentCoinAmount = async (user_email, coin_currency) => {
+export const getCurrentCoinAmount = async (user_email, coin_currency) => {
   let values = [user_email, coin_currency];
   const get_currency_amount =
     "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = $2;";
@@ -337,7 +337,7 @@ const getCurrentCoinAmount = async (user_email, coin_currency) => {
 };
 
 // function to get current balance
-const getAllWalletBalance = async (user_email) => {
+export const getAllWalletBalance = async (user_email) => {
   let value = [user_email];
   const get_all_wallet_balance_query =
     "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 ORDER BY w.wallet_id ASC";
