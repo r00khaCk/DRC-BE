@@ -11,3 +11,8 @@ router.get(
   checkAuth,
   P2PController.getOngoingContracts
 );
+router.get(
+  "/getCompletedContracts",
+  checkAuth,
+  P2PController.getAllCompletedP2PContracts
+);
