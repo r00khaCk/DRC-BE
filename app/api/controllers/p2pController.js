@@ -36,7 +36,7 @@ export const getAllOpenContracts = async (req, res) => {
     });
   } else if (get_all_openContracts.status === "SELECT_QUERY_FAILURE") {
     res.status(500).json({
-      message: "FETCHING_CONTRACTS_FAILED",
+      message: "FETCHING_DATA_FAILED",
     });
   }
 };
@@ -52,9 +52,33 @@ export const getOngoingContracts = async (req, res) => {
     });
   } else if (get_ongoing_contracts.status === "SELECT_QUERY_FAILURE") {
     res.status(500).json({
-      message: "FETCHING_ONGOING_FAILED",
+      message: "FETCHING_DATA_FAILED",
     });
   } else if (get_ongoing_contracts.status === "BAD_REQUEST") {
+    res.status(400).json({
+      message: "REQUEST_ERROR",
+    });
+  }
+};
+
+export const getAllCompletedP2PContracts = async (req, res) => {
+  let get_all_completed_contracts = await P2PModel.getAllCompletedP2PContracts(
+    req.headers
+  );
+  if (get_all_completed_contracts.status === "SELECT_QUERY_SUCCESS") {
+    res.status(200).json({
+      message: "SUCCESS",
+      details: get_all_completed_contracts.data,
+    });
+  } else if (get_all_completed_contracts.status === "NO_CONTRACTS_FETCHED") {
+    res.status(500).json({
+      message: "NO_CONTRACTS_FOUND",
+    });
+  } else if (get_all_completed_contracts.status === "SELECT_QUERY_FAILURE") {
+    res.status(500).json({
+      message: "FETCHING_DATA_FAILED",
+    });
+  } else if (get_all_completed_contracts.status === "BAD_REQUEST") {
     res.status(400).json({
       message: "REQUEST_ERROR",
     });
