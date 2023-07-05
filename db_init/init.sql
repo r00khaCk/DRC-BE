@@ -1,7 +1,3 @@
--- change the timezone
-ALTER DATABASE crypthub_db_2
-SET TIMEZONE TO 'Asia/Kuala_Lumpur';
-
 -- Connect to the newly created database
 \c crypthub_db_2;
 
