@@ -340,6 +340,8 @@ export async function resetPassword(header_details, body_details) {
   let query_result;
   if (email && old_password && new_password) {
     try {
+      if (old_password == new_password)
+        return "NEW_PASSWORD_CANNOT_BE_THE_SAME_AS_OLD_PASSWORD";
       query_result = await database.connection.query(
         "SELECT password FROM crypthubschema.users WHERE email = $1",
         [email]
