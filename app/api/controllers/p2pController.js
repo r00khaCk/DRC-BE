@@ -13,3 +13,26 @@ export const addP2PContract = async (req, res) => {
     res.status(400).json({ message: "REQUEST_ERROR" });
   }
 };
+
+export async function buyContract(req, res) {
+  try {
+    let response = await P2PModel.buyContract(req.headers, req.body);
+    if (response.message == "CONTRACT_PURCHASE_SUCCESFUL") {
+      return res.status(200).json({
+        message: response,
+      });
+    } else if (response.message == "BAD_REQUEST") {
+      return res.status(400).json({
+        message: response,
+      });
+    } else {
+      return res.status(500).json({
+        message: response,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error,
+    });
+  }
+}
