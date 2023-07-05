@@ -144,7 +144,10 @@ export async function resetPassword(req, res) {
       return res.status(201).json({
         message: response,
       });
-    } else if (response == "INVALID_PASSWORD") {
+    } else if (
+      response == "INVALID_PASSWORD" ||
+      response == "NEW_PASSWORD_CANNOT_BE_THE_SAME_AS_OLD_PASSWORD"
+    ) {
       return res.status(401).json({
         message: response,
       });

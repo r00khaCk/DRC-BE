@@ -44,7 +44,7 @@ app.use("/user", UserRouter.router);
 app.use("/trade", checkAuth, TradeRouter.router);
 app.use("/wallet", checkAuth, WalletRouter.router);
 app.use("/transaction", checkAuth, TransactionRouter.router);
-app.use("/p2p", checkAuth, P2PRouter.router);
+app.use("/p2p", P2PRouter.router);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
