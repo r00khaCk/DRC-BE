@@ -220,6 +220,66 @@ export async function buyContract(req_headers, req_body) {
   }
 }
 
+// gets all the completed p2p contracts for users [bought, sold and deleted]
+export const getAllCompletedP2PContracts = async (request_header) => {
+  let user_id = await getID(request_header);
+  console.log(user_id);
+  let value = [user_id];
+  if (user_id) {
+    try {
+      await database.connection.query("BEGIN;");
+      const get_all_completed_contracts_query =
+        "select seller_id, buyer_id from crypthubschema.p2p_completed";
+
+      let get_all_completed_contracts_result = await database.connection.query(
+        get_all_completed_contracts_query
+      );
+
+      let seller_ids = get_all_completed_contracts_result.rows.map(
+        (row) => row.seller_id
+      );
+
+      let buyer_ids = get_all_completed_contracts_result.rows.map(
+        (row) => row.buyer_id
+      );
+
+      if (seller_ids.includes(user_id)) {
+        const get_all_completed_seller_contracts_query =
+          "SELECT p.*, CASE WHEN seller_id = $1 THEN 'sold' else 'bought' END AS transaction_type FROM crypthubschema.p2p_completed AS p";
+        let get_all_completed_seller_contracts =
+          await database.connection.query(
+            get_all_completed_seller_contracts_query,
+            value
+          );
+        return {
+          status: "SELECT_QUERY_SUCCESS",
+          data: get_all_completed_seller_contracts.rows,
+        };
+      } else if (buyer_ids.includes(user_id)) {
+        const get_all_completed_buyer_contracts_query =
+          "SELECT p.*, CASE WHEN buyer_id = $1 THEN 'bought' else 'sold' END AS transaction_type FROM crypthubschema.p2p_completed AS p";
+        let get_all_completed_buyer_contracts = await database.connection.query(
+          get_all_completed_buyer_contracts_query,
+          value
+        );
+        await database.connection.query("COMMIT;");
+        return {
+          status: "SELECT_QUERY_SUCCESS",
+          data: get_all_completed_buyer_contracts.rows,
+        };
+      } else {
+        return { status: "NO_CONTRACTS_FETCHED" };
+      }
+    } catch (error) {
+      await database.connection.query("ROLLBACK;");
+      console.log(error);
+      return { status: "SELECT_QUERY_FAILURE" };
+    }
+  } else {
+    return { status: "BAD_REQUEST" };
+  }
+};
+
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
 const getEmail = (req_headers) => {
   const token = req_headers.authorization.split(" ")[1];
