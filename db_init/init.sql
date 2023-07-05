@@ -60,23 +60,23 @@ CREATE TABLE cryptHubSchema.p2p_contracts (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
  
-CREATE TABLE cryptHubSchema.p2p_completed_contracts (
+CREATE TABLE cryptHubSchema.p2p_completed (
   contract_id VARCHAR(120),
   seller_id INT REFERENCES cryptHubSchema.users(id),
+  buyer_id INT REFERENCES cryptHubSchema.users(id),
   currency TEXT,
   coin_amount FLOAT,
   selling_price FLOAT,
   created_at TIMESTAMP,
-  bought_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE cryptHubSchema.p2p_deleted_contracts (
+CREATE TABLE cryptHubSchema.p2p_deleted (
   contract_id VARCHAR(120),
   seller_id INT REFERENCES cryptHubSchema.users(id),
   currency TEXT,
   coin_amount FLOAT,
   selling_price FLOAT,
   created_at TIMESTAMP,
-  bought_at TIMESTAMP,
   deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
