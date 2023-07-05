@@ -78,5 +78,5 @@ CREATE TABLE cryptHubSchema.p2p_deleted (
   coin_amount FLOAT,
   selling_price FLOAT,
   created_at TIMESTAMP,
-  deleted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
