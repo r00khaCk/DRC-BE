@@ -206,7 +206,14 @@ export async function buyContract(req_headers, req_body) {
         return "FAILED_TO_BUY_CONTRACT";
       }
       await database.connection.query("COMMIT;");
-      return "CONTRACT_PURCHASE_SUCCESFUL";
+      return {
+        message: "CONTRACT_PURCHASE_SUCCESFUL",
+        details: {
+          USD: query_buyer.rows[0].amount,
+          BTC: query_buyer.rows[1].amount,
+          ETH: query_buyer.rows[2].amount,
+        },
+      };
     } else {
       return "BAD_REQUEST";
     }
@@ -221,15 +228,43 @@ export async function deleteContract(req_headers, req_body) {
   try {
     const user_id = await getID(req_headers);
     const { contract_id } = req_body;
+    let contract_currency, contract_currency_id;
     if (user_id && contract_id) {
       const query_contract = await database.connection.query(
         "SELECT * FROM crypthubschema.p2p_contracts WHERE contract_id = $1",
         [contract_id]
       );
       if (query_contract.rows.length == 0) return "FAILED_TO_FETCH_CONTRACT";
+      switch (query_contract.rows[0].currency) {
+        case "BTC":
+          contract_currency_id = 1;
+          contract_currency = "BTC";
+          break;
+        case "ETH":
+          contract_currency_id = 2;
+          contract_currency = "ETH";
+          break;
+      }
       if (user_id != query_contract.rows[0].seller_id)
         return "FAILED_TO_DELETE_CONTRACT";
       await database.connection.query("BEGIN;");
+      // Query for user
+      const query_user = await database.connection.query(
+        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
+        [user_id]
+      );
+      // Reimburse user's coin
+      const final_coin_user =
+        query_user.rows[contract_currency_id].amount +
+        query_contract.rows[0].coin_amount;
+      const query_update_coin_user = await database.connection.query(
+        "UPDATE crypthubschema.wallet SET amount = $1 WHERE user_id = $2 AND currency = $3 RETURNING *",
+        [final_coin_user, user_id, contract_currency]
+      );
+      if (query_update_coin_user.rows.length == 0) {
+        await database.connection.query("ROLLBACK;");
+        return "FAILED_TO_UPDATE_USER_COIN";
+      }
       // Insert contract into deleted
       const query_delete_history = await database.connection.query(
         "INSERT INTO crypthubschema.p2p_deleted (contract_id, seller_id, currency, coin_amount, selling_price, created_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
@@ -244,7 +279,7 @@ export async function deleteContract(req_headers, req_body) {
       );
       if (query_delete_history.rows.length == 0) {
         await database.connection.query("ROLLBACK;");
-        return "FAILED_TO_DELETE_CONTRACT";
+        return "FAILED_TO_INSERT_INTO_HISTORY";
       }
       // Delete from open contract
       const query_delete = await database.connection.query(
@@ -256,7 +291,14 @@ export async function deleteContract(req_headers, req_body) {
         return "FAILED_TO_DELETE_CONTRACT";
       }
       await database.connection.query("COMMIT;");
-      return "CONTRACT_DELETED";
+      return {
+        message: "CONTRACT_DELETED",
+        details: {
+          USD: query_user.rows[0].amount,
+          BTC: query_user.rows[1].amount,
+          ETH: query_user.rows[2].amount,
+        },
+      };
     } else {
       return "BAD_REQUEST";
     }
