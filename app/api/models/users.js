@@ -8,6 +8,7 @@ const env = process.env;
 const redisClient = new Redis({
   host: "redis",
   port: 6379,
+  password: env.REDIS_PASSWORD,
 });
 
 // Register new account
