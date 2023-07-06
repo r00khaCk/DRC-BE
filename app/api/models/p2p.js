@@ -345,7 +345,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
 
       if (seller_ids.includes(user_id)) {
         const get_all_completed_seller_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, CASE WHEN p.seller_id = $1 THEN 'sold' ELSE 'bought' END AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1";
+          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, CASE WHEN p.seller_id = $1 THEN 'sold' ELSE 'bought' END AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY created_at DESC";
         let get_all_completed_seller_contracts =
           await database.connection.query(
             get_all_completed_seller_contracts_query,
@@ -357,7 +357,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
         };
       } else if (buyer_ids.includes(user_id)) {
         const get_all_completed_buyer_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, CASE WHEN p.buyer_id = $1 THEN 'sold' ELSE 'bought' END AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1";
+          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, CASE WHEN p.buyer_id = $1 THEN 'sold' ELSE 'bought' END AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY created_at DESC";
         let get_all_completed_buyer_contracts = await database.connection.query(
           get_all_completed_buyer_contracts_query,
           value
