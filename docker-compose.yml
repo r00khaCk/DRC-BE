@@ -29,23 +29,12 @@ services:
 
   redis:
     image: "bitnami/redis:latest"
+    env_file:
+      - ./app/.env
     ports:
       - "6379:6739"
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
     networks:
       - backend
-
-  redis-cli:
-    image: "bitnami/redis:latest"
-    command: ["redis-cli", "-h", "redis", "-p", "6379"]
-    stdin_open: true
-    tty: true
-    depends_on:
-      - redis
-    networks:
-      - backend
-    container_name: redis-cli-container
 
 networks:
   backend:
