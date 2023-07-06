@@ -90,7 +90,8 @@ export async function buyContract(req, res) {
     let response = await P2PModel.buyContract(req.headers, req.body);
     if (response.message == "CONTRACT_PURCHASE_SUCCESFUL") {
       return res.status(200).json({
-        message: response,
+        message: response.message,
+        details: response.details
       });
     } else if (response.message == "BAD_REQUEST") {
       return res.status(400).json({
@@ -113,7 +114,8 @@ export async function deleteContract(req, res) {
     let response = await P2PModel.deleteContract(req.headers, req.body);
     if (response.message == "CONTRACT_DELETED") {
       return res.status(200).json({
-        message: response,
+        message: response.message,
+        details: response.details
       });
     } else if (response.message == "BAD_REQUEST") {
       return res.status(400).json({
