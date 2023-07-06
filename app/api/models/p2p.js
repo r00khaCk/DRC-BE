@@ -133,7 +133,7 @@ export async function buyContract(req_headers, req_body) {
       }
       await database.connection.query("BEGIN;");
       // Query for Buyer
-      const query_buyer = await database.connection.query(
+      let query_buyer = await database.connection.query(
         "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
         [buyer_id]
       );
@@ -205,6 +205,10 @@ export async function buyContract(req_headers, req_body) {
         await database.connection.query("ROLLBACK;");
         return "FAILED_TO_BUY_CONTRACT";
       }
+      query_buyer = await database.connection.query(
+        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
+        [buyer_id]
+      );
       await database.connection.query("COMMIT;");
       return {
         message: "CONTRACT_PURCHASE_SUCCESFUL",
@@ -248,11 +252,6 @@ export async function deleteContract(req_headers, req_body) {
       if (user_id != query_contract.rows[0].seller_id)
         return "FAILED_TO_DELETE_CONTRACT";
       await database.connection.query("BEGIN;");
-      // Query for user
-      const query_user = await database.connection.query(
-        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
-        [user_id]
-      );
       // Reimburse user's coin
       const final_coin_user =
         query_user.rows[contract_currency_id].amount +
@@ -265,6 +264,10 @@ export async function deleteContract(req_headers, req_body) {
         await database.connection.query("ROLLBACK;");
         return "FAILED_TO_UPDATE_USER_COIN";
       }
+      const query_user = await database.connection.query(
+        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE id = $1 ORDER BY wallet_id ASC",
+        [user_id]
+      );
       // Insert contract into deleted
       const query_delete_history = await database.connection.query(
         "INSERT INTO crypthubschema.p2p_deleted (contract_id, seller_id, currency, coin_amount, selling_price, created_at) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",

@@ -91,7 +91,7 @@ export async function buyContract(req, res) {
     if (response.message == "CONTRACT_PURCHASE_SUCCESFUL") {
       return res.status(200).json({
         message: response.message,
-        details: response.details
+        details: response.details,
       });
     } else if (response.message == "BAD_REQUEST") {
       return res.status(400).json({
@@ -115,7 +115,7 @@ export async function deleteContract(req, res) {
     if (response.message == "CONTRACT_DELETED") {
       return res.status(200).json({
         message: response.message,
-        details: response.details
+        details: response.details,
       });
     } else if (response.message == "BAD_REQUEST") {
       return res.status(400).json({
