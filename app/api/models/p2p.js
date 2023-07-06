@@ -37,6 +37,7 @@ export const addNewP2PContractModel = async (
           update_coin_amount_result.rows.length < 1 &&
           update_coin_amount_result.rows.length > 1
         ) {
+          await database.connection.query("ROLLBACK;");
           return { status: "UPDATE_QUERY_FAILURE" };
         }
 
@@ -368,6 +369,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
           data: get_all_completed_buyer_contracts.rows,
         };
       } else {
+        await database.connection.query("ROLLBACK;");
         return { status: "NO_CONTRACTS_FETCHED" };
       }
     } catch (error) {
