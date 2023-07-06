@@ -5,6 +5,7 @@ services:
       context: .
     depends_on:
       - postgres
+      - redis
     ports:
       - "5000:5000"
     volumes:
@@ -25,5 +26,15 @@ services:
     networks:
       - backend
     container_name: db-postgres-container
+
+  redis:
+    image: "bitnami/redis:latest"
+    env_file:
+      - ./app/.env
+    ports:
+      - "6379:6739"
+    networks:
+      - backend
+
 networks:
   backend:
