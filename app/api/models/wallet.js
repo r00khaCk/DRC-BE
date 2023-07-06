@@ -121,7 +121,7 @@ export async function walletTransaction(header_details) {
     const user_id = await getID(header_details);
     if (user_id) {
       const query_result = await database.connection.query(
-        "SELECT u.* FROM crypthubschema.deposit_withdrawal_transactions as u JOIN crypthubschema.wallet as i  on u.wallet_id = i.wallet_id WHERE user_id = $1",
+        "SELECT u.* FROM crypthubschema.deposit_withdrawal_transactions as u JOIN crypthubschema.wallet as i  on u.wallet_id = i.wallet_id WHERE user_id = $1 ORDER BY created_at DESC",
         [user_id]
       );
       if (query_result.rows.length == 0) return "FAILED_TO_FETCH_TRANSACTION";
