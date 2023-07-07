@@ -24,41 +24,49 @@ export const addNewP2PContractModel = async (
     if (current_coin_amount < coin_amount) {
       return { status: "INSUFFICIENT_COIN_AMOUNT" };
     } else {
-      // deduct the current coin amount with amount to be sold and update the db
-      let new_coin_amount = current_coin_amount - coin_amount;
-      try {
-        await database.connection.query("BEGIN;");
-        let update_coin_amount_result = await updateCoinAmountInWallet(
-          new_coin_amount,
-          user_email,
-          currency
-        );
-        if (
-          update_coin_amount_result.rows.length < 1 &&
-          update_coin_amount_result.rows.length > 1
-        ) {
+      // add the condition checking for number of contracts in the marketplace
+      let user_id = await getID(request_header);
+      let number_of_contract = await getNumberOfContractsSold(user_id);
+      if (number_of_contract.rows[0].number_of_contract >= 5) {
+        // await database.connection.query("COMMIT;");
+        return { status: "LIMIT_REACHED" };
+      } else {
+        try {
+          await database.connection.query("BEGIN;");
+          // deduct the current coin amount with amount to be sold and update the db
+          let new_coin_amount = current_coin_amount - coin_amount;
+          let update_coin_amount_result = await updateCoinAmountInWallet(
+            new_coin_amount,
+            user_email,
+            currency
+          );
+          if (
+            update_coin_amount_result.rows.length < 1 &&
+            update_coin_amount_result.rows.length > 1
+          ) {
+            await database.connection.query("ROLLBACK;");
+            return { status: "UPDATE_QUERY_FAILURE" };
+          }
+
+          const add_new_p2p_contract_query =
+            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) SELECT u.id, $1, $2, $3 FROM cryptHubSchema.users as u WHERE u.email = $4";
+
+          const add_new_p2p_contract = await database.connection.query(
+            add_new_p2p_contract_query,
+            values
+          );
+
+          await database.connection.query("COMMIT;");
+          let all_wallet_balance = await getAllWalletBalance(user_email);
+          return {
+            status: "INPUT_QUERY_SUCCESS",
+            wallet_balance: all_wallet_balance.balance.rows,
+          };
+        } catch (error) {
           await database.connection.query("ROLLBACK;");
-          return { status: "UPDATE_QUERY_FAILURE" };
+          console.log(error);
+          return { status: "INPUT_QUERY_FAILURE" };
         }
-
-        const add_new_p2p_contract_query =
-          "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) SELECT u.id, $1, $2, $3 FROM cryptHubSchema.users as u WHERE u.email = $4";
-
-        const add_new_p2p_contract = await database.connection.query(
-          add_new_p2p_contract_query,
-          values
-        );
-
-        await database.connection.query("COMMIT;");
-        let all_wallet_balance = await getAllWalletBalance(user_email);
-        return {
-          status: "INPUT_QUERY_SUCCESS",
-          wallet_balance: all_wallet_balance.balance.rows,
-        };
-      } catch (error) {
-        await database.connection.query("ROLLBACK;");
-        console.log(error);
-        return { status: "INPUT_QUERY_FAILURE" };
       }
     }
   } else {
@@ -324,7 +332,6 @@ export async function deleteContract(req_headers, req_body) {
 // gets all the completed p2p contracts for users [bought, sold and deleted]
 export const getAllCompletedP2PContracts = async (request_header) => {
   let user_id = await getID(request_header);
-  console.log(user_id);
   let value = [user_id];
   if (user_id) {
     try {
@@ -434,5 +441,20 @@ const updateCoinAmountInWallet = async (
     update_values
   );
   return update_coin_amount;
-  //COIN_AMOUNT_DEDUCTED
+};
+
+const getNumberOfContractsSold = async (user_id) => {
+  let value = [user_id];
+  const get_number_of_contracts_sold_query =
+    "SELECT COUNT(*) as number_of_contract FROM crypthubschema.p2p_contracts WHERE seller_id = $1";
+
+  try {
+    let get_number_of_contracts_sold = await database.connection.query(
+      get_number_of_contracts_sold_query,
+      value
+    );
+    return get_number_of_contracts_sold;
+  } catch (error) {
+    throw new Error(error);
+  }
 };
