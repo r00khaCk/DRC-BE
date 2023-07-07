@@ -8,6 +8,7 @@ const env = process.env;
 const redisClient = new Redis({
   host: "redis",
   port: 6379,
+  password: env.REDIS_PASSWORD,
 });
 
 // Register new account
@@ -77,7 +78,7 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
       subject: "Email Verification",
 
-      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://localhost:5000/user/verify/${verificationToken}?email=${email}`,
+      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://${env.HOST_URL}:5000/user/verify/${verificationToken}?email=${email}`,
     };
 
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
