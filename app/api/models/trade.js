@@ -325,10 +325,6 @@ export const getCurrentCoinAmount = async (user_email, coin_currency) => {
       get_currency_amount,
       values
     );
-    console.log(
-      "currenct amount of sell",
-      current_amount_response.rows[0].amount
-    );
     return current_amount_response.rows[0].amount;
   } catch (error) {
     console.log("Error from current_amount_response: ", error);
