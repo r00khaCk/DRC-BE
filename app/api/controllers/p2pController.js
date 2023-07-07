@@ -24,6 +24,10 @@ export const addP2PContract = async (req, res) => {
     res.status(500).json({ message: "CONTRACT_CREATION_ERROR" });
   } else if (p2p_contract.status === "INSUFFICIENT_COIN_AMOUNT") {
     res.status(400).json({ message: "INSUFFICIENT_COIN_BALANCE" });
+  } else if (p2p_contract.status === "LIMIT_REACHED") {
+    res.status(400).json({
+      message: "LIMIT_OF_CONTRACT_CREATED_REACHED",
+    });
   }
 };
 
