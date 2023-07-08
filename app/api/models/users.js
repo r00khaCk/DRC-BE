@@ -96,7 +96,7 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 };
 
 // verifies if the token sent to the user matches the token generated in the server
-export const verifyAccountModel = (reqParams) => {
+export const verifyToken = (reqParams) => {
   console.log("reqParams", reqParams);
   return new Promise((resolve, reject) => {
     const { token } = reqParams;
@@ -105,9 +105,6 @@ export const verifyAccountModel = (reqParams) => {
       if (err) {
         resolve("INVALID_TOKEN");
       } else {
-        const tokenValue = decoded.data;
-        console.log(tokenValue);
-        changeAccountStatus(tokenValue);
         resolve("VALID_TOKEN");
       }
     });
@@ -116,13 +113,13 @@ export const verifyAccountModel = (reqParams) => {
 
 //-----Functions used within the file-----
 // changes the account status when the token has been validated
-const changeAccountStatus = async (userEmailFromToken) => {
-  const userEmail = userEmailFromToken;
-  let values = [userEmail, 1];
+export const changeAccountStatus = async (userEmailFromToken) => {
+  const { email } = userEmailFromToken;
+  let values = [email, 1];
   let response;
   try {
     response = await database.connection.query(
-      "UPDATE crypthubschema.users SET account_verified=$2 WHERE email=$1",
+      "UPDATE crypthubschema.users SET account_verified=$2 WHERE email=$1 RETURNING *",
       values
     );
   } catch (error) {
@@ -235,8 +232,66 @@ export async function loginUser(login_details) {
   }
 }
 
-export async function forgotPassword(forgotPasswordDetails) {
-  const { email } = forgotPasswordDetails;
+// Send confirmation email
+export async function forgotPassword(req_body) {
+  try {
+    const { email } = req_body;
+    if (email) {
+      const query_email = await database.connection.query(
+        "SELECT * FROM crypthubschema.users WHERE email = $1",
+        [email]
+      );
+      if (query_email.rows.length == 0) return "EMAIL_DOES_NOT_EXIST";
+      const send_confirmation_email = await sendConfirmationEmail(email);
+      return send_confirmation_email;
+    } else {
+      return "BAD_REQUEST";
+    }
+  } catch (error) {
+    console.log(error);
+    return "REQUEST_FAILED";
+  }
+
+  function sendConfirmationEmail(user_email) {
+    return new Promise((resolve, reject) => {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: env.GOOGLE_EMAIL,
+          pass: env.GOOGLE_PASSWORD,
+        },
+      });
+      const verificationToken = jwt.sign(
+        {
+          data: user_email,
+        },
+        env.SECRET_KEY,
+        { expiresIn: "5m" }
+      );
+
+      const mailOptions = {
+        from: "crypthubofficial@gmail.com",
+        to: user_email,
+        subject: "Password Recovery",
+        text: `Hi there dear customer,\nPlease click on this link to recover your password\nhttp://${env.HOST_URL}:5000/user/passwordRecovery/${verificationToken}?email=${user_email}\nDid not request for password recovery? You may ignore this email.`,
+      };
+
+      transporter.sendMail(mailOptions, function (error, info) {
+        if (error) {
+          console.log(error);
+          resolve("FAILED_TO_SEND_EMAIL");
+        } else {
+          console.log("Email sent: " + info.response);
+          resolve("EMAIL_SENT");
+        }
+      });
+    });
+  }
+}
+
+// Send new password
+export async function passwordRecovery(req_body) {
+  const { email } = req_body;
   let query_result;
   if (email) {
     try {
@@ -257,7 +312,7 @@ export async function forgotPassword(forgotPasswordDetails) {
         sendEmail(query_result.rows[0].email, new_password);
         return "SEND_NEW_PASSWORD_TO_USER";
       } else {
-        return "EMAIL_NOT_EXIST";
+        return "EMAIL_DOES_NOT_EXIST";
       }
     } catch (error) {
       console.log("Error during sending new password to user's email");
@@ -283,8 +338,8 @@ export async function forgotPassword(forgotPasswordDetails) {
       result += lower_case.charAt(
         Math.floor(Math.random() * lower_case.length)
       );
-      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
       result += symbols.charAt(Math.floor(Math.random() * symbols.length));
+      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
       counter++;
     }
     return result;
