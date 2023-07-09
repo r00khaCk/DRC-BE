@@ -7,5 +7,8 @@ export const router = express.Router();
 router.post("/walletDeposit", checkAuth, WalletController.walletDeposit);
 router.post("/walletWithdraw", checkAuth, WalletController.walletWithdraw);
 router.get("/walletTransaction", checkAuth, WalletController.walletTransaction);
-
-
+router.get(
+  "/currentWalletBalance",
+  checkAuth,
+  WalletController.getWalletBalance
+);
