@@ -11,10 +11,14 @@ import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import * as P2PRouter from "./api/routes/p2pRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
 import testRouter from "./api/routes/test-route.js";
+import { cronRedis } from "./utils/cron.mjs";
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// CRON to clear REDIS
+cronRedis();
 
 app.use(morgan("dev"));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -53,22 +57,3 @@ app.use("/p2p", P2PRouter.router);
 //   }
 // });
 app.listen(5000, () => console.log("Server running on port 5000"));
-
-// CRON to clear REDIS
-import cron from "node-cron";
-import Redis from "ioredis";
-
-const env = process.env;
-const redisClient = new Redis({
-  host: "redis",
-  port: 6379,
-  password: env.REDIS_PASSWORD,
-});
-
-var task = cron.schedule("0 0 0 * * *", () => {
-  let time = Date.now() - 1000 * 86400;
-  console.log(time);
-  redisClient.zremrangebyscore("blacklisted", 0, time);
-});
-
-task.start();
