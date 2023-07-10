@@ -35,5 +35,16 @@ services:
       - "6379:6739"
     networks:
       - backend
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d
+    depends_on:
+      - app
+    networks:
+      - backend
 networks:
   backend:
