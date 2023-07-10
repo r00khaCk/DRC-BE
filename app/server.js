@@ -3,14 +3,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
 import morgan from "morgan";
-// import cookieParser from "cookie-parser";
 import * as UserRouter from "./api/routes/userRoute.js";
 import * as TradeRouter from "./api/routes/tradeRoute.js";
 import * as WalletRouter from "./api/routes/walletRoute.js";
 import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import * as P2PRouter from "./api/routes/p2pRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
-import testRouter from "./api/routes/test-route.js";
 import { cronRedis } from "./utils/cron.mjs";
 
 const app = express();
