@@ -468,7 +468,7 @@ export async function checkBlacklist(user_token) {
   if (token) {
     try {
       const isBlacklisted = await redisCheckBlacklist(token);
-      if (isBlacklisted == 0) {
+      if (isBlacklisted == null) {
         return "TOKEN_IS_VALID";
       } else {
         return "TOKEN_IS_BLACKLISTED";
