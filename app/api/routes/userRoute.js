@@ -20,4 +20,5 @@ router.post("/logoutUser", checkAuth, UserController.logoutUser);
 router.post("/checkBlacklist", UserController.checkBlacklist);
 
 router.get("/verify/:token", UserController.verifyAccount);
+router.get("/passwordRecovery/:token", UserController.passwordRecovery);
 // router.get("/registerUsers/verify/:token", UserController.activateUserAccount);

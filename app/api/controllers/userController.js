@@ -45,9 +45,8 @@ export const verifyAccount = async (req, res) => {
     console.log("user email from verify token: ", user_email_url);
 
     const email = { email: user_email_url };
-    let account_verified = await UserModel.verifyAccountModel(req.params);
-    console.log(account_verified);
-    if (account_verified === "INVALID_TOKEN") {
+    let check_token = await UserModel.verifyToken(req.params);
+    if (check_token === "INVALID_TOKEN") {
       //check if the account has been verified after first INVALID_TOKEN is received and email verification is sent again
       let account_verify_check =
         await UserModel.checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired(
@@ -59,7 +58,8 @@ export const verifyAccount = async (req, res) => {
       } else {
         return res.render("verifiedAccountView");
       }
-    } else if (account_verified === "VALID_TOKEN") {
+    } else if (check_token === "VALID_TOKEN") {
+      await UserModel.changeAccountStatus(email);
       return res.render("verifiedAccountView");
     }
   } catch (error) {
@@ -122,14 +122,47 @@ export async function loginUser(req, res) {
 export async function forgotPassword(req, res) {
   try {
     let response = await UserModel.forgotPassword(req.body);
-    if (response !== "EMAIL_NOT_EXIST") {
-      return res.status(201).json({
+    if (response == "EMAIL_SENT") {
+      return res.status(200).json({
         message: response,
       });
-    } else
-      res.status(500).json({
+    } else if (
+      response == "EMAIL_DOES_NOT_EXIST" ||
+      response == "BAD_REQUEST"
+    ) {
+      return res.status(400).json({
         message: response,
       });
+    } else {
+      return res.status(500).json({
+        message: response,
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      message: error,
+    });
+  }
+}
+
+export async function passwordRecovery(req, res) {
+  try {
+    let user_email_url = req.query.email;
+    const email = { email: user_email_url };
+    let check_token = await UserModel.verifyToken(req.params);
+    if (check_token == "VALID_TOKEN") {
+      let response = await UserModel.passwordRecovery(email);
+      if (response !== "EMAIL_DOES_NOT_EXIST") {
+        return res.render("passwordRecoveryView");
+      } else
+        res.status(500).json({
+          message: response,
+        });
+    } else if (check_token == "INVALID_TOKEN") {
+      return res.render("passwordRecoveryExpireView");
+    } else {
+      return "FAILED_TO_RETRIEVE_TOKEN";
+    }
   } catch (error) {
     return res.status(500).json({
       message: error,
