@@ -1,5 +1,6 @@
 import express, { json } from "express";
 import path from "path";
+import fs from "fs";
 import { fileURLToPath } from "url";
 import bodyParser from "body-parser";
 import morgan from "morgan";
@@ -10,6 +11,7 @@ import * as WalletRouter from "./api/routes/walletRoute.js";
 import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import * as P2PRouter from "./api/routes/p2pRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
+import * as RequestLogger from "./api/middleware/logger/requestLogger.js";
 import testRouter from "./api/routes/test-route.js";
 
 const app = express();
@@ -17,6 +19,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(morgan("dev"));
+// app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
@@ -45,6 +49,7 @@ app.use("/trade", checkAuth, TradeRouter.router);
 app.use("/wallet", checkAuth, WalletRouter.router);
 app.use("/transaction", checkAuth, TransactionRouter.router);
 app.use("/p2p", P2PRouter.router);
+
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
