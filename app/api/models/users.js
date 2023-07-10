@@ -185,6 +185,7 @@ export async function loginUser(login_details) {
               message: "LOGIN_SUCCESSFUL",
               details: {
                 token: get_token,
+                id: query_result.rows[0].id,
                 name: query_result.rows[0].name,
                 email: query_result.rows[0].email,
                 USD: query_result.rows[0].amount,
