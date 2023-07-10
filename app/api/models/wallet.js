@@ -1,5 +1,6 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
+import { getAllWalletBalance } from "./trade.js";
 
 const env = process.env;
 
@@ -137,6 +138,16 @@ export async function walletTransaction(header_details) {
     return "REQUEST_FAILED";
   }
 }
+
+export const getWalletBalanceFromDB = async (request_header) => {
+  let user_email = await getEmail(request_header);
+  let wallet_balance_result = await getAllWalletBalance(user_email);
+  if (wallet_balance_result.balance.rows.length < 0) {
+    return { status: "SELECT_QUERY_FAILED" };
+  } else {
+    return { balance: wallet_balance_result.balance.rows };
+  }
+};
 
 function getEmail(req_headers) {
   const token = req_headers.authorization.split(" ")[1];
