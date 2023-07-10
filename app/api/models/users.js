@@ -457,7 +457,7 @@ export async function logoutUser(user_token) {
   }
 
   function blacklist(logout_token) {
-    redisClient.sadd("blacklisted", logout_token);
+    redisClient.zadd("blacklisted", Date.now(), logout_token);
   }
 }
 
@@ -468,10 +468,10 @@ export async function checkBlacklist(user_token) {
   if (token) {
     try {
       const isBlacklisted = await redisCheckBlacklist(token);
-      if (isBlacklisted == 1) {
-        return "TOKEN_IS_BLACKLISTED";
-      } else {
+      if (isBlacklisted == 0) {
         return "TOKEN_IS_VALID";
+      } else {
+        return "TOKEN_IS_BLACKLISTED";
       }
     } catch (error) {
       console.log("Error when checking");
@@ -483,6 +483,6 @@ export async function checkBlacklist(user_token) {
   }
 
   function redisCheckBlacklist(token) {
-    return redisClient.sismember("blacklisted", token);
+    return redisClient.zscore("blacklisted", token);
   }
 }
