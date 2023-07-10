@@ -1,6 +1,7 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
 import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
+import { getEmail } from "../../utils/commonFunctions.js";
 
 const env = process.env;
 
@@ -414,12 +415,6 @@ export const getAllCompletedP2PContracts = async (request_header) => {
 };
 
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
-const getEmail = (req_headers) => {
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
-};
 
 function getID(req_headers) {
   const token = req_headers.authorization.split(" ")[1];

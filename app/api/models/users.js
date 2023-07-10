@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
+import { getEmail } from "../../utils/commonFunctions.js";
 
 const env = process.env;
 const redisClient = new Redis({
@@ -432,13 +433,6 @@ export async function resetPassword(header_details, body_details) {
     }
   } else {
     return "BAD_REQUEST";
-  }
-
-  function getEmail(req_headers) {
-    const token = req_headers.authorization.split(" ")[1];
-    const decoded = jwt.verify(token, env.SECRET_KEY);
-    const email = decoded.email;
-    return email;
   }
 }
 

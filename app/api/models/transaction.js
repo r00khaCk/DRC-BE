@@ -1,5 +1,6 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
+import { getEmail } from "../../utils/commonFunctions.js";
 
 const env = process.env;
 
@@ -23,12 +24,4 @@ export const getAllTransactions = async (request_headers) => {
   } else {
     return { status: "BAD_REQUEST" };
   }
-};
-
-const getEmail = (req_headers) => {
-  console.log(req_headers);
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
 };
