@@ -14,4 +14,7 @@ COPY . /usr/src/app/
 # Copies the init.sql file to the container's initdb directory
 COPY db_init/init.sql /docker-entrypoint-initdb.d/
 
+#copies the nginx.conf into /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
 CMD [ "npm", "start" ]
