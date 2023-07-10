@@ -474,9 +474,8 @@ export async function checkBlacklist(user_token) {
         return "TOKEN_IS_BLACKLISTED";
       }
     } catch (error) {
-      console.log("Error when checking");
       console.log(error);
-      throw error;
+      return "FAILED_TO_VALIDATE_TOKEN";
     }
   } else {
     return "BAD_REQUEST";
