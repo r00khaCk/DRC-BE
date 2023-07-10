@@ -77,3 +77,21 @@ export async function walletTransaction(req, res) {
     });
   }
 }
+
+export const getWalletBalance = async (req, res) => {
+  let wallet_balance = await WalletModel.getWalletBalanceFromDB(req.headers);
+  if (wallet_balance.status === "SELECT_QUERY_FAILED") {
+    res.status(500).json({
+      message: "ERROR_FETCHING_DATA",
+    });
+  } else {
+    res.status(200).json({
+      message: "SUCCESS",
+      details: {
+        USD: Number(wallet_balance.balance[0].amount.toFixed(2)),
+        BTC: wallet_balance.balance[1].amount,
+        ETH: wallet_balance.balance[2].amount,
+      },
+    });
+  }
+};
