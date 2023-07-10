@@ -10,12 +10,9 @@ const redisClient = new Redis({
 
 export const checkAuth = async (req, res, next) => {
   try {
-    console.log("BEGIN AUTHENTICATION");
-
     const token = req.headers.authorization.split(" ")[1];
     let isTokenBlacklisted = await checkBlacklist(token);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
-      console.log("BEGIN JWT VERIFY");
       jwt.verify(token, env.SECRET_KEY);
       next();
     } else {
@@ -35,9 +32,7 @@ async function checkBlacklist(user_token) {
 
   if (token) {
     try {
-      console.log("TRYING TO CHECK BLACKLIST");
       const isBlacklisted = await redisCheckBlacklist(token);
-      console.log(isBlacklisted, "AFTER CHECK BLACKLIST");
       if (isBlacklisted == null) {
         return "TOKEN_IS_VALID";
       } else {
