@@ -28,30 +28,26 @@ export const checkAuth = async (req, res, next) => {
   }
 };
 
-async function checkBlacklist(userToken) {
-  let response;
-  console.log(userToken);
-  if (userToken) {
+async function checkBlacklist(user_token) {
+  const token = user_token;
+
+  if (token) {
     try {
-      const isBlacklisted = await redisCheckBlacklist(userToken);
-      if (isBlacklisted == 1) {
-        response = "TOKEN_IS_BLACKLISTED";
+      const isBlacklisted = await redisCheckBlacklist(token);
+      if (isBlacklisted == null) {
+        return "TOKEN_IS_VALID";
       } else {
-        response = "TOKEN_IS_VALID";
+        return "TOKEN_IS_BLACKLISTED";
       }
     } catch (error) {
-      console.log("Error when checking");
       console.log(error);
-      response = "BLACKLIST_CHECK_ERROR";
-      throw error;
-    } finally {
-      return response;
+      return "FAILED_TO_VALIDATE_TOKEN";
     }
   } else {
-    return (response = "REQUEST_ERROR");
+    return "BAD_REQUEST";
   }
 
-  function redisCheckBlacklist(userToken) {
-    return redisClient.sismember("blacklisted", userToken);
+  function redisCheckBlacklist(token) {
+    return redisClient.zscore("blacklisted", token);
   }
 }

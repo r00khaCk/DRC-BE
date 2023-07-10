@@ -185,6 +185,7 @@ export async function loginUser(login_details) {
               message: "LOGIN_SUCCESSFUL",
               details: {
                 token: get_token,
+                id: query_result.rows[0].id,
                 name: query_result.rows[0].name,
                 email: query_result.rows[0].email,
                 USD: query_result.rows[0].amount,
@@ -468,15 +469,14 @@ export async function checkBlacklist(user_token) {
   if (token) {
     try {
       const isBlacklisted = await redisCheckBlacklist(token);
-      if (isBlacklisted == 0) {
+      if (isBlacklisted == null) {
         return "TOKEN_IS_VALID";
       } else {
         return "TOKEN_IS_BLACKLISTED";
       }
     } catch (error) {
-      console.log("Error when checking");
       console.log(error);
-      throw error;
+      return "FAILED_TO_VALIDATE_TOKEN";
     }
   } else {
     return "BAD_REQUEST";
