@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
 import { getEmail } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
 
 const env = process.env;
 const redisClient = new Redis({
@@ -157,10 +158,7 @@ export async function loginUser(login_details) {
   let query_result;
   if (email && password) {
     try {
-      query_result = await database.connection.query(
-        "SELECT * FROM crypthubschema.users JOIN crypthubschema.wallet ON id = user_id WHERE email = $1 ORDER BY wallet_id ASC",
-        [email]
-      );
+      query_result = await getWalletBalance(email);
     } catch (error) {
       console.log("Error in query");
       console.log(error);

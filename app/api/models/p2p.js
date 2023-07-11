@@ -1,7 +1,8 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
-import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
+import { getCurrentCoinAmount } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
 
 const env = process.env;
 
@@ -58,7 +59,7 @@ export const addNewP2PContractModel = async (
           );
 
           await database.connection.query("COMMIT;");
-          let all_wallet_balance = await getAllWalletBalance(user_email);
+          let all_wallet_balance = await getWalletBalance(user_email);
           return {
             status: "INPUT_QUERY_SUCCESS",
             wallet_balance: all_wallet_balance.balance.rows,

@@ -1,7 +1,7 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
-import { getAllWalletBalance } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
 
 const env = process.env;
 
@@ -12,10 +12,7 @@ export async function walletDeposit(header_details, body_details) {
     if (amount && email) {
       // begin
       await database.connection.query("BEGIN;");
-      const query_balance = await database.connection.query(
-        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE email = $1 AND currency = 'USD' ORDER BY wallet_id ASC",
-        [email]
-      );
+      const query_balance = await getWalletBalance(email);
       if (query_balance.rows.length == 0) {
         return "FAILED_TO_FETCH_WALLET";
       }
@@ -66,10 +63,7 @@ export async function walletWithdraw(header_details, body_details) {
     if (amount && email) {
       // begin
       await database.connection.query("BEGIN;");
-      const query_balance = await database.connection.query(
-        "SELECT * FROM crypthubschema.wallet JOIN crypthubschema.users ON user_id = id WHERE email = $1 AND currency = 'USD' ORDER BY wallet_id ASC",
-        [email]
-      );
+      const query_balance = await getWalletBalance(email);
       if (query_balance.rows.length == 0) return "FAILED_TO_WITHDRAW";
       const final_amount = query_balance.rows[0].amount - amount;
       if (final_amount < 0)
@@ -142,11 +136,10 @@ export async function walletTransaction(header_details) {
 
 export const getWalletBalanceFromDB = async (request_header) => {
   let user_email = await getEmail(request_header);
-  let wallet_balance_result = await getAllWalletBalance(user_email);
+  let wallet_balance_result = await getWalletBalance(user_email);
   if (wallet_balance_result.balance.rows.length < 0) {
     return { status: "SELECT_QUERY_FAILED" };
   } else {
     return { balance: wallet_balance_result.balance.rows };
   }
 };
-
