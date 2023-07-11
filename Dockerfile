@@ -16,5 +16,7 @@ COPY db_init/init.sql /docker-entrypoint-initdb.d/
 
 #copies the nginx.conf into /etc/nginx/conf.d/default.conf
 COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY /etc/letsencrypt/live/crypthub-api.online/fullchain.pem /etc/nginx/certs/certificate.crt
+COPY /etc/letsencrypt/live/crypthub-api.online/privkey.pem /etc/nginx/certs/private.key
 
 CMD [ "npm", "start" ]
