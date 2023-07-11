@@ -8,3 +8,10 @@ export function getEmail(req_headers) {
   const email = decoded.email;
   return email;
 }
+
+export function getID(req_headers) {
+  const token = req_headers.authorization.split(" ")[1];
+  const decoded = jwt.verify(token, env.SECRET_KEY);
+  const id = decoded.id;
+  return id;
+}

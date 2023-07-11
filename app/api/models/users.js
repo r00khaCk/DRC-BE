@@ -406,7 +406,6 @@ export async function resetPassword(header_details, body_details) {
       );
       if (query_result.rows.length) {
         const actual_password = query_result.rows[0].password;
-        //Too many if else, feels bad :( , need to clean this before pushing to prod - Haziq
         const matching = await bcrypt.compare(old_password, actual_password);
         if (matching) {
           try {
