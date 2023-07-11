@@ -1,8 +1,7 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
-import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
-
-const env = process.env;
+import { getCurrentCoinAmount } from "./trade.js";
+import { getEmail, getID } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
 
 // adds new P2P contracts into the marketplace
 export const addNewP2PContractModel = async (
@@ -57,7 +56,7 @@ export const addNewP2PContractModel = async (
           );
 
           await database.connection.query("COMMIT;");
-          let all_wallet_balance = await getAllWalletBalance(user_email);
+          let all_wallet_balance = await getWalletBalance(user_email);
           return {
             status: "INPUT_QUERY_SUCCESS",
             wallet_balance: all_wallet_balance.balance.rows,
@@ -414,19 +413,6 @@ export const getAllCompletedP2PContracts = async (request_header) => {
 };
 
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
-const getEmail = (req_headers) => {
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
-};
-
-function getID(req_headers) {
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const id = decoded.id;
-  return id;
-}
 
 const updateCoinAmountInWallet = async (
   new_coin_amount,
