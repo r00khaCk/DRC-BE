@@ -1,9 +1,6 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
-
-const env = process.env;
 
 export async function walletDeposit(header_details, body_details) {
   try {

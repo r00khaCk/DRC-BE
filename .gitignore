@@ -4,3 +4,4 @@ app/package-lock.json
 db-data
 config/dockerClear.sh
 app/sql-queries/
+app/api/middleware/logger/access.log

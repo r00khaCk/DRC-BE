@@ -1,8 +1,5 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
 import { getEmail } from "../../utils/commonFunctions.js";
-
-const env = process.env;
 
 // function to get all transactions
 export const getAllTransactions = async (request_headers) => {

@@ -1,10 +1,7 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
 import { getCurrentCoinAmount } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
-
-const env = process.env;
 
 // adds new P2P contracts into the marketplace
 export const addNewP2PContractModel = async (
