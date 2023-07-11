@@ -19,7 +19,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // app.use(morgan("dev"));
-app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
+// app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
+app.use(morgan("combined"));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
