@@ -42,7 +42,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /etc/letsencrypt/live/crypthub-api.online/fullchain.pem:/etc/nginx/certs/certificate.crt
+      - /etc/letsencrypt/live/crypthub-api.online/cert.pem:/etc/nginx/certs/certificate.crt
       - /etc/letsencrypt/live/crypthub-api.online/privkey.pem:/etc/nginx/certs/private.key
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
