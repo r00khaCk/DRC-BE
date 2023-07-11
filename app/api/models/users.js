@@ -3,6 +3,7 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
+import { CustomError } from "../middleware/error/custom-error.js";
 
 const env = process.env;
 const redisClient = new Redis({
@@ -23,11 +24,14 @@ export const registerNewUserModel = async (registerDetails) => {
   if (storedEmail.rows.length) {
     // if storedEmail.rows.length is > 0 means that there is a duplicate email in the db
     console.log(`${email} exists in the database`);
-    return "DUPLICATE_EMAIL";
+    // return "DUPLICATE_EMAIL";
+    throw new CustomError("DUPLICATE_EMAIL");
   } else {
     bcrypt.hash(password, 10, async (err, hash) => {
       if (err) {
-        return "PASSWORD_HASHING_ERROR";
+        // return "PASSWORD_HASHING_ERROR";
+        console.log(err);
+        throw new CustomError("PASSWORD_HASHING_ERROR");
       } else {
         let hashPassword = hash;
         // Check if email, name, and password are true
@@ -40,12 +44,12 @@ export const registerNewUserModel = async (registerDetails) => {
             );
             addUserWallets(email);
           } catch (error) {
-            console.log("Error in query");
+            // console.log("Error in query");
             console.log(error);
-            throw error;
+            throw new CustomError("QUERY_FAILED");
           }
         } else {
-          throw new Error("Bad Request");
+          throw new CustomError("BAD_REQUEST");
         }
       }
     });
@@ -83,15 +87,18 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
       if (error) {
-        console.log(Error(error));
-        return "VERIFICATION_EMAIL_ERROR";
+        console.log(error);
+        // return "VERIFICATION_EMAIL_ERROR";
+        throw new CustomError("VERIFICATION_EMAIL_ERROR");
       }
       console.log("VERIFICATION_EMAIL_SENT");
-      console.log(info);
+      // console.log(info);
       return "VERIFICATION_EMAIL_SENT";
     });
   } catch (error) {
-    throw Error(error);
+    // throw Error(error);
+    console.log(error);
+    throw new CustomError("INTERNAL_ERROR");
   }
 };
 
@@ -103,7 +110,9 @@ export const verifyToken = (reqParams) => {
 
     jwt.verify(token, env.SECRET_KEY, (err, decoded) => {
       if (err) {
+        console.log(err);
         resolve("INVALID_TOKEN");
+        throw new CustomError("INVALID_TOKEN");
       } else {
         resolve("VALID_TOKEN");
       }
@@ -125,7 +134,7 @@ export const changeAccountStatus = async (userEmailFromToken) => {
   } catch (error) {
     console.log("Error in query");
     console.log(error);
-    throw error;
+    throw new CustomError("QUERY_ERROR");
   }
 };
 
