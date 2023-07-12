@@ -1,7 +1,16 @@
+import { validationResult } from "express-validator";
 import * as WalletModel from "../models/wallet.js";
 
 export async function walletDeposit(req, res) {
   try {
+    // handles errors from the user validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let response = await WalletModel.walletDeposit(req.headers, req.body);
     if (response == "BAD_REQUEST") {
       return res.status(400).json({
@@ -26,6 +35,14 @@ export async function walletDeposit(req, res) {
 
 export async function walletWithdraw(req, res) {
   try {
+    // handles errors from the user validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let response = await WalletModel.walletWithdraw(req.headers, req.body);
     if (response.message == "INSUFFICIENT_BALANCE") {
       return res.status(400).json({
