@@ -1,8 +1,10 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
-import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
 
-const env = process.env;
+import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
+import { CustomError } from "../middleware/error/custom-error.js";
+import { getCurrentCoinAmount } from "./trade.js";
+import { getEmail, getID } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
 
 // adds new P2P contracts into the marketplace
 export const addNewP2PContractModel = async (
@@ -22,14 +24,14 @@ export const addNewP2PContractModel = async (
     // get currenct coin amount of the user
     let current_coin_amount = await getCurrentCoinAmount(user_email, currency);
     if (current_coin_amount < coin_amount) {
-      return { status: "INSUFFICIENT_COIN_AMOUNT" };
+      throw new CustomError("INSUFFICIENT_COIN_AMOUNT");
     } else {
       // add the condition checking for number of contracts in the marketplace
       let user_id = await getID(request_header);
       let number_of_contract = await getNumberOfContractsSold(user_id);
       if (number_of_contract.rows[0].number_of_contract >= 5) {
         // await database.connection.query("COMMIT;");
-        return { status: "LIMIT_REACHED" };
+        throw new CustomError("CONTRACT_LIMIT_REACHED");
       } else {
         try {
           await database.connection.query("BEGIN;");
@@ -45,7 +47,7 @@ export const addNewP2PContractModel = async (
             update_coin_amount_result.rows.length > 1
           ) {
             await database.connection.query("ROLLBACK;");
-            return { status: "UPDATE_QUERY_FAILURE" };
+            throw new CustomError("UPDATE_QUERY_FAILURE");
           }
 
           const add_new_p2p_contract_query =
@@ -57,20 +59,22 @@ export const addNewP2PContractModel = async (
           );
 
           await database.connection.query("COMMIT;");
-          let all_wallet_balance = await getAllWalletBalance(user_email);
+          let all_wallet_balance = await getWalletBalance(user_email);
           return {
             status: "INPUT_QUERY_SUCCESS",
-            wallet_balance: all_wallet_balance.balance.rows,
+            wallet_balance: all_wallet_balance.rows,
           };
         } catch (error) {
           await database.connection.query("ROLLBACK;");
           console.log(error);
-          return { status: "INPUT_QUERY_FAILURE" };
+          // return { status: "INPUT_QUERY_FAILURE" };
+          throw new CustomError("INPUT_QUERY_FAILURE");
         }
       }
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
@@ -85,7 +89,8 @@ export const getOpenContractsModel = async () => {
     return { status: "SELECT_QUERY_SUCCESS", data: get_all_openContracts.rows };
   } catch (error) {
     console.log(error);
-    return { status: "SELECT_QUERY_FAILURE" };
+    // return { status: "SELECT_QUERY_FAILURE" };
+    throw new CustomError("SELECT_QUERY_FAILURE");
   }
 };
 
@@ -108,10 +113,12 @@ export const getOngoingContractsModel = async (request_header) => {
       };
     } catch (error) {
       console.log(error);
-      return { status: "SELECT_QUERY_FAILURE" };
+      // return { status: "SELECT_QUERY_FAILURE" };
+      throw new CustomError("SELECT_QUERY_FAILURE");
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
@@ -328,7 +335,7 @@ export async function deleteContract(req_headers, req_body) {
     return "REQUEST_FAILED";
   }
 }
-
+//SOME FIXES TODO
 // gets all the completed p2p contracts for users [bought, sold and deleted]
 export const getAllCompletedP2PContracts = async (request_header) => {
   let user_id = await getID(request_header);
@@ -371,7 +378,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
           );
         await database.connection.query("COMMIT;");
         return {
-          status: "SELECT_QUERY_SUCCESS",
+          status: "CONTRACTS_FOUND",
           data: get_all_completed_seller_contracts.rows,
         };
       } else if (buyer_ids.includes(user_id)) {
@@ -383,7 +390,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
         );
         await database.connection.query("COMMIT;");
         return {
-          status: "SELECT_QUERY_SUCCESS",
+          status: "CONTRACTS_FOUND",
           data: get_all_completed_buyer_contracts.rows,
         };
       } else if (deleted_seller_ids.includes(user_id)) {
@@ -396,37 +403,26 @@ export const getAllCompletedP2PContracts = async (request_header) => {
           );
         await database.connection.query("COMMIT;");
         return {
-          status: "SELECT_QUERY_SUCCESS",
+          status: "CONTRACTS_FOUND",
           data: get_all_completed_deleted_contracts.rows,
         };
       } else {
         await database.connection.query("ROLLBACK;");
-        return { status: "NO_CONTRACTS_FETCHED" };
+        return { status: "SELECT_QUERY_SUCCESS" };
       }
     } catch (error) {
       await database.connection.query("ROLLBACK;");
       console.log(error);
-      return { status: "SELECT_QUERY_FAILURE" };
+      // return { status: "SELECT_QUERY_FAILURE" };
+      throw new CustomError("SELECT_QUERY_FAILURE");
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
-const getEmail = (req_headers) => {
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
-};
-
-function getID(req_headers) {
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const id = decoded.id;
-  return id;
-}
 
 const updateCoinAmountInWallet = async (
   new_coin_amount,

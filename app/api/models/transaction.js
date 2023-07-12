@@ -1,7 +1,9 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
 
-const env = process.env;
+import { CustomError } from "../middleware/error/custom-error.js";
+
+import { getEmail } from "../../utils/commonFunctions.js";
+
 
 // function to get all transactions
 export const getAllTransactions = async (request_headers) => {
@@ -18,17 +20,13 @@ export const getAllTransactions = async (request_headers) => {
       return { status: "SUCCESS", data: get_all_transactions.rows };
     } catch (error) {
       console.log("Error from get_all_transactions: ", error);
-      return { status: "QUERY_FAIL" };
+      // return { status: "QUERY_FAIL" };
+      throw new CustomError("QUERY_FAILED");
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
-const getEmail = (req_headers) => {
-  console.log(req_headers);
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
-};
+

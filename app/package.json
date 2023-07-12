@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon -r dotenv/config server.js dotenv_config_path=.env dotenv_config_debug=true"
+    "start": "nodemon -r dotenv/config server.js dotenv_config_path=.env dotenv_config_debug=true",
+    "dev": "nodemon -r dotenv/config server.js dotenv_config_path=.env dotenv_config_debug=true"
   },
   "keywords": [],
   "author": "",
