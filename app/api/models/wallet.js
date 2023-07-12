@@ -134,9 +134,9 @@ export async function walletTransaction(header_details) {
 export const getWalletBalanceFromDB = async (request_header) => {
   let user_email = await getEmail(request_header);
   let wallet_balance_result = await getWalletBalance(user_email);
-  if (wallet_balance_result.balance.rows.length < 0) {
+  if (wallet_balance_result.rows.length < 0) {
     return { status: "SELECT_QUERY_FAILED" };
   } else {
-    return { balance: wallet_balance_result.balance.rows };
+    return { balance: wallet_balance_result.rows };
   }
 };
