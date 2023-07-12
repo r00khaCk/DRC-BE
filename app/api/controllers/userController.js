@@ -11,7 +11,7 @@ export const registerNewUser = async (req, res, next) => {
         errors: errors.array(),
       });
     }
-    let user = await UserModel.registerNewUserModel(req.body);
+    await UserModel.registerNewUserModel(req.body);
     return res.status(201).json({
       message: "USER_CREATED",
     });
