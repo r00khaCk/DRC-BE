@@ -1,5 +1,5 @@
 export const p2p_error_codes = {
-  INSUFFICIENT_COIN_AMOUNT: {
+  INSUFFICIENT_BALANCE: {
     statusCode: 400,
     message: "Insufficient wallet balance",
   },
@@ -18,5 +18,25 @@ export const p2p_error_codes = {
   SELECT_QUERY_FAILURE: {
     statusCode: 500,
     message: "Failed to fetch data",
+  },
+  FAILED_TO_FETCH_CONTRACT: {
+    statusCode: 500,
+    message: "Contract had already been bought/withdrawed",
+  },
+  CANNOT_BUY_OWN_CONTRACT: {
+    statusCode: 400,
+    message: "Cannot buy own contract",
+  },
+  FAILED_TO_BUY_CONTRACT: {
+    statusCode: 500,
+    message: "Failed to buy contract",
+  },
+  FAILED_TO_WITHDRAW_CONTRACT: {
+    statusCode: 500,
+    message: "Failed to withdraw contract",
+  },
+  CANNOT_DELETE_OTHERS_CONTRACT: {
+    statusCode: 400,
+    message: "Cannot buy own contract",
   },
 };

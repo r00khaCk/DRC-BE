@@ -124,49 +124,26 @@ export async function passwordRecovery(req, res, next) {
     next(err);
   }
 }
-export async function resetPassword(req, res) {
+export async function resetPassword(req, res, next) {
   try {
     let response = await UserModel.resetPassword(req.headers, req.body);
-    console.log(response, "HERE");
-    if (response == "RESET_PASSWORD_SUCCESS") {
-      return res.status(201).json({
-        message: response,
-      });
-    } else if (
-      response == "INVALID_PASSWORD" ||
-      response == "NEW_PASSWORD_CANNOT_BE_THE_SAME_AS_OLD_PASSWORD"
-    ) {
-      return res.status(401).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(201).json({
+      message: response,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function logoutUser(req, res) {
+export async function logoutUser(req, res, next) {
   try {
     const token = req.headers.authorization.split(" ")[1];
     let response = await UserModel.logoutUser(token);
-    if (response !== "LOGOUT_SUCCESS") {
-      return res.status(500).json({
-        message: response,
-      });
-    } else
-      res.status(200).json({
-        message: response,
-      });
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    res.status(200).json({
+      message: response,
     });
+  } catch (err) {
+    next(err);
   }
 }
 

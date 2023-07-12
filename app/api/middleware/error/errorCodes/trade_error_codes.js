@@ -7,7 +7,7 @@ export const trade_error_codes = {
     statusCode: 400,
     message: "Insufficient coin amount to be sold",
   },
-  QUERY_FAILED: {
+  TRADE_QUERY_FAILED: {
     statusCode: 500,
     message: "Transaction failed. Please try again",
   },
@@ -19,7 +19,7 @@ export const trade_error_codes = {
     statusCode: 500,
     message: "Error during sell process",
   },
-  QUERY_ERROR: {
+  TRADE_QUERY_ERROR: {
     statusCode: 500,
     message: "Internal query error",
   },

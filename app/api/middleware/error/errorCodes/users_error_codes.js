@@ -1,13 +1,14 @@
 export const user_error_codes = {
+  // Register
   DUPLICATE_EMAIL: {
     statusCode: 400,
-    message: "This email address already exists",
+    message: "This email address is already in used",
   },
   PASSWORD_HASHING_ERROR: {
     statusCode: 500,
-    message: "Failed to create user",
+    message: "Failed: Error during hashing",
   },
-  QUERY_FAILED: {
+  REGISTER_QUERY_FAILED: {
     statusCode: 500,
     message: "Failed to create user",
   },
@@ -19,32 +20,39 @@ export const user_error_codes = {
     statusCode: 400,
     message: "Verification token is invalid",
   },
-  QUERY_ERROR: {
+  VERIFICATION_ERROR: {
     statusCode: 500,
     message: "Failed to verify account",
   },
-  U_INVALID_PASSWORD: {
+  // Login
+  INVALID_PASSWORD: {
     statusCode: 400,
     message: "Wrong Password",
   },
-  U_FAILED_TO_SET_TIMESTAMP: {
+  FAILED_TO_SET_TIMESTAMP: {
     statusCode: 500,
-    message: "Failed to set timestamp",
+    message: "Login Failed. Please try again",
   },
-  U_ACCOUNT_NOT_VERIFIED: {
+  ACCOUNT_NOT_VERIFIED: {
     statusCode: 400,
     message: "Account is not verified",
   },
-  U_EMAIL_NOT_EXIST: {
+  EMAIL_NOT_EXIST: {
     statusCode: 400,
-    message: "Email does not exist",
+    message: "User with the given email does not exist",
   },
-  U_FAILED_TO_SEND_EMAIL: {
+  // Password Recovery
+  FAILED_TO_SEND_EMAIL: {
     statusCode: 500,
-    message: "Failed to send email for password recovery",
+    message: "",
   },
-  U_FAILED_TO_SET_NEW_PASSWORD: {
+  FAILED_TO_SET_NEW_PASSWORD: {
     statusCode: 500,
     message: "Failed to set new password",
+  },
+  // Reset Password
+  PASSWORD_NEW_SAME_AS_OLD: {
+    statusCode: 500,
+    message: "New password cannot be the same as old password",
   },
 };

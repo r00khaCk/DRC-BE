@@ -48,7 +48,7 @@ export const registerNewUserModel = async (registerDetails) => {
           } catch (error) {
             // console.log("Error in query");
             console.log(error);
-            throw new CustomError("QUERY_FAILED");
+            throw new CustomError("REGISTER_QUERY_FAILED");
           }
         } else {
           throw new CustomError("BAD_REQUEST");
@@ -138,7 +138,7 @@ export const changeAccountStatus = async (userEmailFromToken) => {
   } catch (error) {
     console.log("Error in query");
     console.log(error);
-    throw new CustomError("QUERY_ERROR");
+    throw new CustomError("VERIFICATION_ERROR");
   }
 };
 
@@ -191,10 +191,10 @@ export async function loginUser(login_details) {
             },
           };
         } else {
-          throw new CustomError("U_ACCOUNT_NOT_VERIFIED");
+          throw new CustomError("ACCOUNT_NOT_VERIFIED");
         }
       } else {
-        throw new CustomError("U_EMAIL_NOT_EXIST");
+        throw new CustomError("EMAIL_NOT_EXIST");
       }
     } else {
       throw new CustomError("BAD_REQUEST");
@@ -218,13 +218,13 @@ export async function loginUser(login_details) {
         [Date.now() / 1000]
       );
       if (query_result.rows.length == 0)
-        throw new CustomError("U_FAILED_TO_SET_TIMESTAMP");
+        throw new CustomError("FAILED_TO_SET_TIMESTAMP");
       let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
         expiresIn: "24h",
       });
       return token;
     } else {
-      throw new CustomError("U_INVALID_PASSWORD");
+      throw new CustomError("INVALID_PASSWORD");
     }
   }
 }
@@ -239,7 +239,7 @@ export async function forgotPassword(req_body) {
         [email]
       );
       if (query_email.rows.length == 0)
-        throw new CustomError("U_EMAIL_NOT_EXIST");
+        throw new CustomError("EMAIL_NOT_EXIST");
       const send_confirmation_email = await sendConfirmationEmail(email);
       return send_confirmation_email;
     } else {
@@ -277,7 +277,7 @@ export async function forgotPassword(req_body) {
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
           console.log(error);
-          throw new CustomError("U_FAILED_TO_SEND_EMAIL");
+          throw new CustomError("FAILED_TO_SEND_EMAIL");
         } else {
           console.log("Email sent: " + info.response);
           resolve("EMAIL_SENT");
@@ -298,7 +298,7 @@ export async function passwordRecovery(req_body) {
         [email]
       );
       if (query_result.rows.length == 0)
-        throw new CustomError("U_EMAIL_NOT_EXIST");
+        throw new CustomError("EMAIL_NOT_EXIST");
       const new_password = generateRandomChars();
       setNewPassword(query_result.rows[0].email, new_password);
       sendEmail(query_result.rows[0].email, new_password);
@@ -344,7 +344,7 @@ export async function passwordRecovery(req_body) {
           [hashPassword, user_email]
         );
         if (set_new_password_query == 0) {
-          throw new CustomError("U_FAILED_TO_SET_NEW_PASSWORD");
+          throw new CustomError("FAILED_TO_SET_NEW_PASSWORD");
         }
       }
     });
@@ -368,7 +368,7 @@ export async function passwordRecovery(req_body) {
 
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        throw new CustomError("U_FAILED_TO_SEND_EMAIL");
+        throw new CustomError("FAILED_TO_SEND_EMAIL");
       } else {
         console.log("Email sent: " + info.response);
       }
@@ -377,61 +377,57 @@ export async function passwordRecovery(req_body) {
 }
 
 export async function resetPassword(header_details, body_details) {
-  const email = await getEmail(header_details);
-  const { old_password, new_password } = body_details;
-  let query_result;
-  if (email && old_password && new_password) {
-    try {
-      if (old_password == new_password)
-        return "NEW_PASSWORD_CANNOT_BE_THE_SAME_AS_OLD_PASSWORD";
-      query_result = await database.connection.query(
-        "SELECT password FROM crypthubschema.users WHERE email = $1",
-        [email]
-      );
-      if (query_result.rows.length) {
-        const actual_password = query_result.rows[0].password;
-        const matching = await bcrypt.compare(old_password, actual_password);
-        if (matching) {
-          try {
-            let hash_result = await bcrypt.hash(new_password, 10);
-            if (hash_result == "PASSWORD_HASHING_ERROR") return hash_result;
-            let query_result2 = await database.connection.query(
-              "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
-              [hash_result, email]
-            );
-            if (query_result2.rows.length == 0) return "RESET_PASSWORD_FAILURE";
-            return "RESET_PASSWORD_SUCCESS";
-          } catch (error) {
-            return "PASSWORD_HASHING_ERROR";
-          }
-        } else {
-          return "INVALID_PASSWORD";
-        }
-      } else {
-        return "FAILED_TO_FETCH_USER";
-      }
-    } catch (error) {
-      console.log(error);
-      return error;
+  try {
+    const email = await getEmail(header_details);
+    const { old_password, new_password } = body_details;
+    if (!email || !old_password || !new_password) {
+      throw new CustomError("BAD_REQUEST");
     }
-  } else {
-    return "BAD_REQUEST";
+    if (old_password == new_password)
+      throw new CustomError("PASSWORD_NEW_SAME_AS_OLD");
+    const query_result = await database.connection.query(
+      "SELECT password FROM crypthubschema.users WHERE email = $1",
+      [email]
+    );
+    if (query_result.rows.length == 0) {
+      throw new CustomError("EMAIL_NOT_EXIST");
+    }
+    const actual_password = query_result.rows[0].password;
+    const matching = await bcrypt.compare(old_password, actual_password);
+    if (matching) {
+      try {
+        let hash_result = await bcrypt.hash(new_password, 10);
+        let query_result2 = await database.connection.query(
+          "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
+          [hash_result, email]
+        );
+        if (query_result2.rows.length == 0)
+          throw new CustomError("RESET_PASSWORD_FAILURE");
+        return "RESET_PASSWORD_SUCCESS";
+      } catch (error) {
+        throw new CustomError("PASSWORD_HASHING_ERROR");
+      }
+    } else {
+      throw new CustomError("INVALID_PASSWORD");
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 }
 
 export async function logoutUser(user_token) {
-  const token = user_token;
-  if (token) {
-    try {
+  try {
+    const token = user_token;
+    if (token) {
       blacklist(token);
       return "LOGOUT_SUCCESS";
-    } catch (error) {
-      console.log("Error when blacklisting token");
-      console.log(error);
-      return "INVALID_TOKEN";
+    } else {
+      throw new CustomError("BAD_REQUEST");
     }
-  } else {
-    return "BAD_REQUEST";
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 
   function blacklist(logout_token) {
@@ -439,7 +435,7 @@ export async function logoutUser(user_token) {
   }
 }
 
-// This function is just to see if a token is blacklisted or not -Haziq
+// This endpoint is just to see if a token is blacklisted or not -Haziq
 export async function checkBlacklist(user_token) {
   const { token } = user_token;
 

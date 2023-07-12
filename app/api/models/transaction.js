@@ -4,7 +4,6 @@ import { CustomError } from "../middleware/error/custom-error.js";
 
 import { getEmail } from "../../utils/commonFunctions.js";
 
-
 // function to get all transactions
 export const getAllTransactions = async (request_headers) => {
   let user_email = await getEmail(request_headers);
@@ -21,12 +20,10 @@ export const getAllTransactions = async (request_headers) => {
     } catch (error) {
       console.log("Error from get_all_transactions: ", error);
       // return { status: "QUERY_FAIL" };
-      throw new CustomError("QUERY_FAILED");
+      throw new CustomError("FAILED_TO_GET_TRANSACTION_RECORD");
     }
   } else {
     // return { status: "BAD_REQUEST" };
     throw new CustomError("BAD_REQUEST");
   }
 };
-
-

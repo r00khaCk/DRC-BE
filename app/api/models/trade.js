@@ -79,7 +79,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
       } catch (error) {
         console.log("Error from buy transaction", error);
         // return { status: "QUERY_FAILED" };
-        throw new CustomError("QUERY_FAILED");
+        throw new CustomError("TRADE_QUERY_FAILED");
       }
     }
   } else {
@@ -166,7 +166,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
       } catch (error) {
         console.log("Error from sell transaction", error);
         // return { status: "QUERY_FAILED" };
-        throw new CustomError("QUERY_FAILED");
+        throw new CustomError("TRADE_QUERY_FAILED");
       }
     }
   } else {
@@ -327,7 +327,7 @@ export const getCurrentCoinAmount = async (user_email, coin_currency) => {
   } catch (error) {
     console.log(error);
     // throw Error(error);
-    throw new CustomError("QUERY_ERROR");
+    throw new CustomError("TRADE_QUERY_ERROR");
   }
 };
 
@@ -357,6 +357,6 @@ const addTransactionToTransactionHistory = async (
   } catch (error) {
     console.log(error);
     // throw Error(error);
-    throw new CustomError("QUERY_ERROR");
+    throw new CustomError("TRADE_QUERY_ERROR");
   }
 };

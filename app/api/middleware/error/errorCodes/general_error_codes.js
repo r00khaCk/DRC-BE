@@ -7,4 +7,12 @@ export const general_error_codes = {
     statusCode: 500,
     message: "Internal server error",
   },
+  FAILED_TO_GET_BALANCE: {
+    statusCode: 500,
+    message: "Failed to get wallet's balance",
+  },
+  FAILED_TO_GET_TRANSACTION_RECORD: {
+    statusCode: 500,
+    message: "Failed to get transaction record",
+  },
 };
