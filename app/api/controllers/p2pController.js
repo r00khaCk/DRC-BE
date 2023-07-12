@@ -1,7 +1,15 @@
+import { validationResult } from "express-validator";
 import * as P2PModel from "../models/p2p.js";
 
 export const addP2PContract = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let p2p_contract = await P2PModel.addNewP2PContractModel(
       req.body,
       req.headers
