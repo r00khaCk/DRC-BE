@@ -6,7 +6,6 @@ import { getCurrentCoinAmount } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
 
-
 // adds new P2P contracts into the marketplace
 export const addNewP2PContractModel = async (
   contract_information,
@@ -63,7 +62,7 @@ export const addNewP2PContractModel = async (
           let all_wallet_balance = await getWalletBalance(user_email);
           return {
             status: "INPUT_QUERY_SUCCESS",
-            wallet_balance: all_wallet_balance.balance.rows,
+            wallet_balance: all_wallet_balance.rows,
           };
         } catch (error) {
           await database.connection.query("ROLLBACK;");
