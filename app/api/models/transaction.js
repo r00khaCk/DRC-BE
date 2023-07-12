@@ -1,8 +1,9 @@
 import database from "../../services/db.js";
-import jwt from "jsonwebtoken";
+
 import { CustomError } from "../middleware/error/custom-error.js";
 
-const env = process.env;
+import { getEmail } from "../../utils/commonFunctions.js";
+
 
 // function to get all transactions
 export const getAllTransactions = async (request_headers) => {
@@ -28,10 +29,4 @@ export const getAllTransactions = async (request_headers) => {
   }
 };
 
-const getEmail = (req_headers) => {
-  // console.log(req_headers);
-  const token = req_headers.authorization.split(" ")[1];
-  const decoded = jwt.verify(token, env.SECRET_KEY);
-  const email = decoded.email;
-  return email;
-};
+

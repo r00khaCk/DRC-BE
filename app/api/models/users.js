@@ -3,7 +3,12 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
+
 import { CustomError } from "../middleware/error/custom-error.js";
+
+import { getEmail } from "../../utils/commonFunctions.js";
+import { getWalletBalance } from "../../utils/commonQueries.js";
+
 
 const env = process.env;
 const redisClient = new Redis({
@@ -165,10 +170,7 @@ export async function loginUser(login_details) {
   let query_result;
   if (email && password) {
     try {
-      query_result = await database.connection.query(
-        "SELECT * FROM crypthubschema.users JOIN crypthubschema.wallet ON id = user_id WHERE email = $1 ORDER BY wallet_id ASC",
-        [email]
-      );
+      query_result = await getWalletBalance(email);
     } catch (error) {
       console.log("Error in query");
       console.log(error);
@@ -414,7 +416,6 @@ export async function resetPassword(header_details, body_details) {
       );
       if (query_result.rows.length) {
         const actual_password = query_result.rows[0].password;
-        //Too many if else, feels bad :( , need to clean this before pushing to prod - Haziq
         const matching = await bcrypt.compare(old_password, actual_password);
         if (matching) {
           try {
@@ -441,13 +442,6 @@ export async function resetPassword(header_details, body_details) {
     }
   } else {
     return "BAD_REQUEST";
-  }
-
-  function getEmail(req_headers) {
-    const token = req_headers.authorization.split(" ")[1];
-    const decoded = jwt.verify(token, env.SECRET_KEY);
-    const email = decoded.email;
-    return email;
   }
 }
 

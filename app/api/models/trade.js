@@ -1,6 +1,9 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
+
 import { CustomError } from "../middleware/error/custom-error.js";
+import { getCoinBalance, getWalletBalance } from "../../utils/commonQueries.js";
+
 
 const env = process.env;
 
@@ -53,8 +56,10 @@ export const buyCoinsModel = async (order_information, req_header) => {
         );
 
         // gets all the current wallet amount
-        let get_all_wallet_balance = await getAllWalletBalance(user_email);
-        // console.log(get_all_wallet_balance.balance.rows);
+
+        let get_all_wallet_balance = await getWalletBalance(user_email);
+        console.log(get_all_wallet_balance.balance.rows);
+
 
         const { coin_currency } = order_information;
 
@@ -142,7 +147,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
         );
 
         // gets all the current wallet amount
-        let get_all_wallet_balance = await getAllWalletBalance(user_email);
+        let get_all_wallet_balance = await getWalletBalance(user_email);
         console.log(get_all_wallet_balance.balance.rows);
 
         addTransactionToTransactionHistory(
@@ -179,15 +184,8 @@ const calculateTotalBuyAmount = async (order_information, user_email) => {
     let total_amount = current_price * coin_amount;
 
     //check if wallet has enough money (virtual) in the user's USDT wallet
-    let values = [user_email];
 
-    let get_wallet_balance =
-      "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = 'USD'";
-
-    let wallet_balance = await database.connection.query(
-      get_wallet_balance,
-      values
-    );
+    let wallet_balance = await getWalletBalance(user_email);
 
     console.log("Wallet balance from db: ", wallet_balance.rows[0].amount);
     if (wallet_balance.rows[0].amount < total_amount.toFixed(2)) {
@@ -226,17 +224,8 @@ const calculateTotalEarned = async (order_information, user_email) => {
     total_earned_after_commission_deduction
   );
 
-  let values = [user_email, coin_currency];
-
-  let get_coin_balance_query =
-    "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = $2";
-
   try {
-    let coin_balance = await database.connection.query(
-      get_coin_balance_query,
-      values
-    );
-
+    let coin_balance = await getCoinBalance(user_email, coin_currency);
     console.log("Coin balance from wallet (db): ", coin_balance.rows[0].amount);
 
     if (coin_balance.rows[0].amount < coin_amount) {
@@ -303,7 +292,6 @@ const addEarnedAmountIntoUSDWallet = async (
   total_earned,
   order_information
 ) => {
-  const { coin_currency } = order_information;
   let current_USD_amount = await getCurrentCoinAmount(user_email, "USD");
   console.log("Current USD wallet amount: ", current_USD_amount);
 
@@ -331,13 +319,10 @@ const addEarnedAmountIntoUSDWallet = async (
 
 // gets the current amount of a specific currency
 export const getCurrentCoinAmount = async (user_email, coin_currency) => {
-  let values = [user_email, coin_currency];
-  const get_currency_amount =
-    "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 AND w.currency = $2;";
   try {
-    let current_amount_response = await database.connection.query(
-      get_currency_amount,
-      values
+    let current_amount_response = await getCoinBalance(
+      user_email,
+      coin_currency
     );
     return current_amount_response.rows[0].amount;
   } catch (error) {
@@ -347,23 +332,6 @@ export const getCurrentCoinAmount = async (user_email, coin_currency) => {
   }
 };
 
-// function to get current balance
-export const getAllWalletBalance = async (user_email) => {
-  let value = [user_email];
-  const get_all_wallet_balance_query =
-    "SELECT w.amount FROM cryptHubSchema.wallet AS w JOIN cryptHubSchema.users AS u ON u.id = w.user_id WHERE u.email = $1 ORDER BY w.wallet_id ASC";
-  try {
-    const get_all_wallet_balance = await database.connection.query(
-      get_all_wallet_balance_query,
-      value
-    );
-    return { balance: get_all_wallet_balance };
-  } catch (error) {
-    console.log(error);
-    // throw Error(error);
-    throw new CustomError("QUERY_ERROR");
-  }
-};
 
 // function to add the buy/sell orders to the transaction history
 const addTransactionToTransactionHistory = async (
