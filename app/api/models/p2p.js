@@ -1,6 +1,5 @@
 import database from "../../services/db.js";
 
-import { getCurrentCoinAmount, getAllWalletBalance } from "./trade.js";
 import { CustomError } from "../middleware/error/custom-error.js";
 import { getCurrentCoinAmount } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
