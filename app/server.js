@@ -53,6 +53,7 @@ app.use("/wallet", checkAuth, WalletRouter.router);
 app.use("/transaction", checkAuth, TransactionRouter.router);
 app.use("/p2p", P2PRouter.router);
 
+app.use(errorHandler);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
@@ -61,3 +62,4 @@ app.use("/p2p", P2PRouter.router);
 //   }
 // });
 app.listen(5000, () => console.log("Server running on port 5000"));
+
