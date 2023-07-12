@@ -12,30 +12,30 @@ export const registerNewUser = async (req, res, next) => {
       });
     }
     let user = await UserModel.registerNewUserModel(req.body);
-    // error responses
-    if (user === "DUPLICATE_EMAIL") {
-      return res.status(400).json({
-        message: "DUPLICATE_EMAIL",
-      });
-    } else if (user === "PASSWORD_HASHING_ERROR") {
-      return res.status(500).json({
-        message: "PASSWORD_HASHING_ERROR",
-      });
-    }
-    if (!sendVerificationEmail(req.body)) {
-      return res.status(500).json({
-        message: "VERIFICATION_EMAIL_ERROR",
-      });
-    }
     return res.status(201).json({
       message: "USER_CREATED",
     });
+    // error responses
+    // if (user === "DUPLICATE_EMAIL") {
+    //   return res.status(400).json({
+    //     message: "DUPLICATE_EMAIL",
+    //   });
+    // } else if (user === "PASSWORD_HASHING_ERROR") {
+    //   return res.status(500).json({
+    //     message: "PASSWORD_HASHING_ERROR",
+    //   });
+    // }
+    // if (!sendVerificationEmail(req.body)) {
+    //   return res.status(500).json({
+    //     message: "VERIFICATION_EMAIL_ERROR",
+    //   });
+    // }
     // catches error in the request body, i.e: missing key when post request is sent
   } catch (err) {
     next(err);
-    return res.status(500).json({
-      error: err,
-    });
+    // return res.status(500).json({
+    //   error: err,
+    // });
   }
 };
 
