@@ -1,5 +1,7 @@
 import database from "../../services/db.js";
 import jwt from "jsonwebtoken";
+
+import { CustomError } from "../middleware/error/custom-error.js";
 import { getCoinBalance, getWalletBalance } from "../../utils/commonQueries.js";
 
 const env = process.env;
@@ -25,7 +27,8 @@ export const buyCoinsModel = async (order_information, req_header) => {
     );
     //checks the returned value of the calculate_total_model_result()
     if (calculate_total_model_result.status === "BALANCE_INSUFFICIENT") {
-      return { status: "BALANCE_INSUFFICIENT" };
+      // return { status: "BALANCE_INSUFFICIENT" };
+      throw new CustomError("BALANCE_INSUFFICIENT");
     } else if (calculate_total_model_result.status === "BALANCE_SUFFICIENT") {
       //calculates the new balance for the USD wallet
       let balance_from_wallet =
@@ -42,7 +45,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
           update_usd_wallet,
           balance_values
         );
-        console.log(update_wallet_query);
+        // console.log(update_wallet_query);
 
         //adds the bought coin into the user wallet (currency based on order)
         addBoughtCurrencyIntoWallet(
@@ -52,8 +55,9 @@ export const buyCoinsModel = async (order_information, req_header) => {
         );
 
         // gets all the current wallet amount
+
         let get_all_wallet_balance = await getWalletBalance(user_email);
-        console.log(get_all_wallet_balance.balance.rows);
+        console.log(get_all_wallet_balance.rows);
 
         const { coin_currency } = order_information;
 
@@ -69,16 +73,18 @@ export const buyCoinsModel = async (order_information, req_header) => {
         // return result
         return {
           status: "BUY_SUCCESS",
-          wallet_balance: get_all_wallet_balance.balance.rows,
+          wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
         console.log("Error from buy transaction", error);
-        return { status: "QUERY_FAILED" };
+        // return { status: "QUERY_FAILED" };
+        throw new CustomError("QUERY_FAILED");
       }
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
@@ -88,8 +94,8 @@ export const sellCoinsModel = async (order_information, req_header) => {
     const token = req_header.authorization.split(" ")[1];
     const decoded = jwt.verify(token, env.SECRET_KEY);
     let user_email = decoded.email;
-    console.log("User email from token: ", user_email);
-    console.log("Sell order from user: ", order_information);
+    // console.log("User email from token: ", user_email);
+    // console.log("Sell order from user: ", order_information);
 
     // calculates the total amount earned from selling
     const calculate_total_earned_result = await calculateTotalEarned(
@@ -97,14 +103,15 @@ export const sellCoinsModel = async (order_information, req_header) => {
       user_email
     );
 
-    console.log(
-      "Variable calculate_total_earned_result: ",
-      calculate_total_earned_result
-    );
+    // console.log(
+    //   "Variable calculate_total_earned_result: ",
+    //   calculate_total_earned_result
+    // );
 
     // checks if there is enough coins to be sold
     if (calculate_total_earned_result.status === "INSUFFICIENT_COIN_AMOUNT") {
-      return { status: "INSUFFICIENT_COIN_AMOUNT" };
+      // return { status: "INSUFFICIENT_COIN_AMOUNT" };
+      throw new CustomError("INSUFFICIENT_COIN_AMOUNT");
     } else if (
       calculate_total_earned_result.status === "SUFFICIENT_COIN_AMOUNT"
     ) {
@@ -129,7 +136,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
           update_coin_balance_query,
           coin_balance_values
         );
-        console.log(update_coin_balance);
+        // console.log(update_coin_balance);
 
         // function to add the earned amount from sale to the USD wallet
         addEarnedAmountIntoUSDWallet(
@@ -140,7 +147,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
         // gets all the current wallet amount
         let get_all_wallet_balance = await getWalletBalance(user_email);
-        console.log(get_all_wallet_balance.balance.rows);
+        console.log(get_all_wallet_balance.rows);
 
         addTransactionToTransactionHistory(
           user_email,
@@ -153,16 +160,18 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
         return {
           status: "SELL_SUCCESS",
-          wallet_balance: get_all_wallet_balance.balance.rows,
+          wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
-        console.log("Error from buy transaction", error);
-        return { status: "QUERY_FAILED" };
+        console.log("Error from sell transaction", error);
+        // return { status: "QUERY_FAILED" };
+        throw new CustomError("QUERY_FAILED");
       }
     }
   } else {
-    return { status: "BAD_REQUEST" };
+    // return { status: "BAD_REQUEST" };
+    throw new CustomError("BAD_REQUEST");
   }
 };
 
@@ -191,7 +200,8 @@ const calculateTotalBuyAmount = async (order_information, user_email) => {
     }
   } catch (error) {
     console.log(Error(error));
-    return "BUY_ERROR";
+    // return "BUY_ERROR";
+    throw new CustomError("BUY_ERROR");
   }
 };
 
@@ -230,8 +240,9 @@ const calculateTotalEarned = async (order_information, user_email) => {
       };
     }
   } catch (error) {
-    console.log("Error for wallet_balance: ", error);
-    throw Error(error);
+    console.log(error);
+    // throw Error(error);
+    throw new CustomError("SELL_ERROR");
   }
 };
 
@@ -261,12 +272,17 @@ const addBoughtCurrencyIntoWallet = async (
 
   const update_bought_coin_amount =
     "UPDATE cryptHubSchema.wallet AS w SET amount = $1  FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = $3 ";
-  let update_coin_amount_query = await database.connection.query(
-    update_bought_coin_amount,
-    values
-  );
-  let bought_coin_amount = update_coin_amount_query;
-  return { coinAdded: bought_coin_amount };
+  try {
+    let update_coin_amount_query = await database.connection.query(
+      update_bought_coin_amount,
+      values
+    );
+    let bought_coin_amount = update_coin_amount_query;
+    return { coinAdded: bought_coin_amount };
+  } catch (error) {
+    console.log(error);
+    throw new CustomError("BUY_ERROR");
+  }
 };
 
 //add total_earned into the USD wallet
@@ -294,8 +310,9 @@ const addEarnedAmountIntoUSDWallet = async (
     console.log(new_USD_wallet_balance);
     // return new_USD_wallet_balance;
   } catch (error) {
-    console.log("Error from update_usd_wallet: ", error);
-    throw Error(error);
+    console.log(error);
+    // throw Error(error);
+    throw new CustomError("SELL_ERROR");
   }
 };
 
@@ -308,8 +325,9 @@ export const getCurrentCoinAmount = async (user_email, coin_currency) => {
     );
     return current_amount_response.rows[0].amount;
   } catch (error) {
-    console.log("Error from current_amount_response: ", error);
-    throw Error(error);
+    console.log(error);
+    // throw Error(error);
+    throw new CustomError("QUERY_ERROR");
   }
 };
 
@@ -337,7 +355,8 @@ const addTransactionToTransactionHistory = async (
   try {
     await database.connection.query(add_transaction_query, values);
   } catch (error) {
-    console.log("Error from add_transaction_query: ", error);
-    throw Error(error);
+    console.log(error);
+    // throw Error(error);
+    throw new CustomError("QUERY_ERROR");
   }
 };

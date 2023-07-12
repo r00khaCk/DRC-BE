@@ -10,6 +10,7 @@ import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import * as P2PRouter from "./api/routes/p2pRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
 import { cronRedis } from "./utils/cron.mjs";
+import { errorHandler } from "./api/middleware/error/error-handler.js";
 import * as RequestLogger from "./api/middleware/logger/requestLogger.js";
 
 const app = express();
@@ -53,6 +54,7 @@ app.use("/wallet", checkAuth, WalletRouter.router);
 app.use("/transaction", checkAuth, TransactionRouter.router);
 app.use("/p2p", P2PRouter.router);
 
+app.use(errorHandler);
 // app.use("/test", testRouter);
 // app.use((error, req, res, next) => {
 //   if (error) {
