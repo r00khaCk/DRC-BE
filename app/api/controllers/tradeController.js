@@ -1,7 +1,15 @@
 import * as TradeModel from "../models/trade.js";
+import { validationResult } from "express-validator";
 
 export const buyTrade = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let buy_order = await TradeModel.buyCoinsModel(req.body, req.headers);
     if (buy_order.status === "BUY_SUCCESS") {
       return res.status(200).json({
@@ -48,6 +56,13 @@ export const buyTrade = async (req, res, next) => {
 
 export const sellTrade = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let sell_order = await TradeModel.sellCoinsModel(req.body, req.headers);
     return res.status(200).json({
       message: "SELL_ORDER_SUCCESS",
