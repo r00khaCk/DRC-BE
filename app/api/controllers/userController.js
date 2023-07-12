@@ -7,11 +7,16 @@ export const registerNewUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        success: false,
+        validation: "failed",
         errors: errors.array(),
       });
     }
     await UserModel.registerNewUserModel(req.body);
+    if (!sendVerificationEmail(req.body)) {
+      return res.status(500).json({
+        message: "VERIFICATION_EMAIL_ERROR",
+      });
+    }
     return res.status(201).json({
       message: "USER_CREATED",
     });
@@ -121,6 +126,14 @@ export async function loginUser(req, res) {
 
 export async function forgotPassword(req, res) {
   try {
+    // handles errors from the user validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let response = await UserModel.forgotPassword(req.body);
     if (response == "EMAIL_SENT") {
       return res.status(200).json({

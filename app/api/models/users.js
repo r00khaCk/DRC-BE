@@ -3,12 +3,9 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
-
 import { CustomError } from "../middleware/error/custom-error.js";
-
 import { getEmail } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
-
 
 const env = process.env;
 const redisClient = new Redis({
