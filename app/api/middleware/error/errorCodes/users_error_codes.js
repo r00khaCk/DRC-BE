@@ -44,7 +44,7 @@ export const user_error_codes = {
   // Password Recovery
   FAILED_TO_SEND_EMAIL: {
     statusCode: 500,
-    message: "",
+    message: "Recovery Password email failed to be sent",
   },
   FAILED_TO_SET_NEW_PASSWORD: {
     statusCode: 500,
