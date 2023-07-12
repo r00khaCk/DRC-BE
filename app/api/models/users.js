@@ -3,12 +3,9 @@ import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import database from "../../services/db.js";
 import Redis from "ioredis";
-
 import { CustomError } from "../middleware/error/custom-error.js";
-
 import { getEmail } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
-
 
 const env = process.env;
 const redisClient = new Redis({
@@ -108,20 +105,22 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 };
 
 // verifies if the token sent to the user matches the token generated in the server
-export const verifyToken = (reqParams) => {
-  console.log("reqParams", reqParams);
+export const verifyToken = async (reqParams) => {
+  const { token } = reqParams;
+  let isTokenBlacklisted = await redisClient.zscore("blacklisted", token);
   return new Promise((resolve, reject) => {
-    const { token } = reqParams;
-
-    jwt.verify(token, env.SECRET_KEY, (err, decoded) => {
-      if (err) {
-        console.log(err);
-        resolve("INVALID_TOKEN");
-        throw new CustomError("INVALID_TOKEN");
-      } else {
-        resolve("VALID_TOKEN");
-      }
-    });
+    if (isTokenBlacklisted == null) {
+      jwt.verify(token, env.SECRET_KEY, (err, decoded) => {
+        if (err) {
+          resolve("INVALID_TOKEN");
+        } else {
+          redisClient.zadd("blacklisted", Date.now(), token);
+          resolve("VALID_TOKEN");
+        }
+      });
+    } else {
+      resolve("INVALID_TOKEN");
+    }
   });
 };
 
@@ -166,18 +165,11 @@ export const checkIfAccountHasBeenVerifiedAfterVerificationEmailExpired = (
 };
 
 export async function loginUser(login_details) {
-  const { email, password } = login_details;
-  let query_result;
-  if (email && password) {
-    try {
+  try {
+    const { email, password } = login_details;
+    let query_result;
+    if (email && password) {
       query_result = await getWalletBalance(email);
-    } catch (error) {
-      console.log("Error in query");
-      console.log(error);
-      throw error;
-    }
-
-    try {
       if (query_result.rows.length) {
         if (query_result.rows[0].account_verified == true) {
           let get_token = await checkPassword(
@@ -186,38 +178,30 @@ export async function loginUser(login_details) {
             query_result.rows[0].email,
             query_result.rows[0].id
           );
-          if (
-            get_token == "INVALID_PASSWORD" ||
-            get_token == "FAILED_TO_SET_TIMESTAMP"
-          ) {
-            return get_token;
-          } else {
-            return {
-              message: "LOGIN_SUCCESSFUL",
-              details: {
-                token: get_token,
-                id: query_result.rows[0].id,
-                name: query_result.rows[0].name,
-                email: query_result.rows[0].email,
-                USD: query_result.rows[0].amount,
-                BTC: query_result.rows[1].amount,
-                ETH: query_result.rows[2].amount,
-              },
-            };
-          }
+          return {
+            message: "LOGIN_SUCCESSFUL",
+            details: {
+              token: get_token,
+              id: query_result.rows[0].id,
+              name: query_result.rows[0].name,
+              email: query_result.rows[0].email,
+              USD: query_result.rows[0].amount,
+              BTC: query_result.rows[1].amount,
+              ETH: query_result.rows[2].amount,
+            },
+          };
         } else {
-          return "ACCOUNT_NOT_VERIFIED";
+          throw new CustomError("U_ACCOUNT_NOT_VERIFIED");
         }
       } else {
-        return "EMAIL_NOT_EXIST";
+        throw new CustomError("U_EMAIL_NOT_EXIST");
       }
-    } catch (error) {
-      console.log("Error during verification");
-      console.log(error);
-      throw error;
+    } else {
+      throw new CustomError("BAD_REQUEST");
     }
-  } else {
-    throw new Error("Bad Request");
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 
   async function checkPassword(
@@ -233,13 +217,14 @@ export async function loginUser(login_details) {
         "UPDATE crypthubschema.users SET last_login = to_timestamp($1) RETURNING *",
         [Date.now() / 1000]
       );
-      if (query_result.rows.length == 0) return "FAILED_TO_SET_TIMESTAMP";
+      if (query_result.rows.length == 0)
+        throw new CustomError("U_FAILED_TO_SET_TIMESTAMP");
       let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
         expiresIn: "24h",
       });
       return token;
     } else {
-      return "INVALID_PASSWORD";
+      throw new CustomError("U_INVALID_PASSWORD");
     }
   }
 }
@@ -253,15 +238,16 @@ export async function forgotPassword(req_body) {
         "SELECT * FROM crypthubschema.users WHERE email = $1",
         [email]
       );
-      if (query_email.rows.length == 0) return "EMAIL_DOES_NOT_EXIST";
+      if (query_email.rows.length == 0)
+        throw new CustomError("U_EMAIL_NOT_EXIST");
       const send_confirmation_email = await sendConfirmationEmail(email);
       return send_confirmation_email;
     } else {
-      return "BAD_REQUEST";
+      throw new CustomError("BAD_REQUEST");
     }
   } catch (error) {
     console.log(error);
-    return "REQUEST_FAILED";
+    throw error;
   }
 
   function sendConfirmationEmail(user_email) {
@@ -291,7 +277,7 @@ export async function forgotPassword(req_body) {
       transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
           console.log(error);
-          resolve("FAILED_TO_SEND_EMAIL");
+          throw new CustomError("U_FAILED_TO_SEND_EMAIL");
         } else {
           console.log("Email sent: " + info.response);
           resolve("EMAIL_SENT");
@@ -303,36 +289,26 @@ export async function forgotPassword(req_body) {
 
 // Send new password
 export async function passwordRecovery(req_body) {
-  const { email } = req_body;
-  let query_result;
-  if (email) {
-    try {
+  try {
+    const { email } = req_body;
+    let query_result;
+    if (email) {
       query_result = await database.connection.query(
         "SELECT * FROM crypthubschema.users WHERE email = $1",
         [email]
       );
-    } catch (error) {
-      console.log("Error in query");
-      console.log(error);
-      throw error;
+      if (query_result.rows.length == 0)
+        throw new CustomError("U_EMAIL_NOT_EXIST");
+      const new_password = generateRandomChars();
+      setNewPassword(query_result.rows[0].email, new_password);
+      sendEmail(query_result.rows[0].email, new_password);
+      return "SEND_NEW_PASSWORD_TO_USER";
+    } else {
+      throw new CustomError("BAD_REQUEST");
     }
-
-    try {
-      if (query_result.rows.length) {
-        const new_password = generateRandomChars();
-        setNewPassword(query_result.rows[0].email, new_password);
-        sendEmail(query_result.rows[0].email, new_password);
-        return "SEND_NEW_PASSWORD_TO_USER";
-      } else {
-        return "EMAIL_DOES_NOT_EXIST";
-      }
-    } catch (error) {
-      console.log("Error during sending new password to user's email");
-      console.log(error);
-      throw error;
-    }
-  } else {
-    return "BAD_REQUEST";
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 
   function generateRandomChars() {
@@ -360,17 +336,15 @@ export async function passwordRecovery(req_body) {
   function setNewPassword(user_email, new_password) {
     bcrypt.hash(new_password, 10, async (err, hash) => {
       if (err) {
-        return "PASSWORD_HASHING_ERROR";
+        throw new CustomError("PASSWORD_HASHING_ERROR");
       } else {
         let hashPassword = hash;
-        try {
-          const set_new_password_query = await database.connection.query(
-            "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
-            [hashPassword, user_email]
-          );
-          if (set_new_password_query == 0) return "QUERY_ERROR";
-        } catch (error) {
-          console.log(error);
+        const set_new_password_query = await database.connection.query(
+          "UPDATE crypthubschema.users SET password = $1 WHERE email = $2 RETURNING *",
+          [hashPassword, user_email]
+        );
+        if (set_new_password_query == 0) {
+          throw new CustomError("U_FAILED_TO_SET_NEW_PASSWORD");
         }
       }
     });
@@ -394,7 +368,7 @@ export async function passwordRecovery(req_body) {
 
     transporter.sendMail(mailOptions, function (error, info) {
       if (error) {
-        console.log(error);
+        throw new CustomError("U_FAILED_TO_SEND_EMAIL");
       } else {
         console.log("Email sent: " + info.response);
       }

@@ -11,15 +11,10 @@ export const trade_error_codes = {
     statusCode: 500,
     message: "Transaction failed. Please try again",
   },
-  BAD_REQUEST: {
-    statusCode: 400,
-    message: "Error in request",
-  },
   BUY_ERROR: {
     statusCode: 500,
     message: "Error during buy process",
   },
-
   SELL_ERROR: {
     statusCode: 500,
     message: "Error during sell process",

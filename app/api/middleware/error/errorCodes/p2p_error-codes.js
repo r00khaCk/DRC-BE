@@ -7,10 +7,6 @@ export const p2p_error_codes = {
     statusCode: 400,
     message: "Maximum number of contract reached",
   },
-  BAD_REQUEST: {
-    statusCode: 400,
-    message: "Error in request",
-  },
   UPDATE_QUERY_FAILURE: {
     status: 500,
     message: "P2P contract creation failed",
@@ -18,10 +14,6 @@ export const p2p_error_codes = {
   INPUT_QUERY_FAILURE: {
     statusCode: 500,
     message: "P2P contract creation failed",
-  },
-  INTERNAL_ERROR: {
-    statusCode: 500,
-    message: "Internal server error",
   },
   SELECT_QUERY_FAILURE: {
     statusCode: 500,
