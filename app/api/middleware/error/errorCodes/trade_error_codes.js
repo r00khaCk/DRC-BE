@@ -3,6 +3,10 @@ export const trade_error_codes = {
     statusCode: 400,
     message: "Insufficienct USD wallet balance",
   },
+  INSUFFICIENT_COIN_AMOUNT: {
+    statusCode: 400,
+    message: "Insufficient coin amount to be sold",
+  },
   QUERY_FAILED: {
     statusCode: 500,
     message: "Transaction failed. Please try again",

@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import { CustomError } from "../middleware/error/custom-error.js";
 import { getCoinBalance, getWalletBalance } from "../../utils/commonQueries.js";
 
-
 const env = process.env;
 
 // buy function
@@ -58,8 +57,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         // gets all the current wallet amount
 
         let get_all_wallet_balance = await getWalletBalance(user_email);
-        console.log(get_all_wallet_balance.balance.rows);
-
+        console.log(get_all_wallet_balance.rows);
 
         const { coin_currency } = order_information;
 
@@ -75,7 +73,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         // return result
         return {
           status: "BUY_SUCCESS",
-          wallet_balance: get_all_wallet_balance.balance.rows,
+          wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
@@ -112,7 +110,8 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
     // checks if there is enough coins to be sold
     if (calculate_total_earned_result.status === "INSUFFICIENT_COIN_AMOUNT") {
-      return { status: "INSUFFICIENT_COIN_AMOUNT" };
+      // return { status: "INSUFFICIENT_COIN_AMOUNT" };
+      throw new CustomError("INSUFFICIENT_COIN_AMOUNT");
     } else if (
       calculate_total_earned_result.status === "SUFFICIENT_COIN_AMOUNT"
     ) {
@@ -148,7 +147,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
         // gets all the current wallet amount
         let get_all_wallet_balance = await getWalletBalance(user_email);
-        console.log(get_all_wallet_balance.balance.rows);
+        console.log(get_all_wallet_balance.rows);
 
         addTransactionToTransactionHistory(
           user_email,
@@ -161,7 +160,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
 
         return {
           status: "SELL_SUCCESS",
-          wallet_balance: get_all_wallet_balance.balance.rows,
+          wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
@@ -331,7 +330,6 @@ export const getCurrentCoinAmount = async (user_email, coin_currency) => {
     throw new CustomError("QUERY_ERROR");
   }
 };
-
 
 // function to add the buy/sell orders to the transaction history
 const addTransactionToTransactionHistory = async (
