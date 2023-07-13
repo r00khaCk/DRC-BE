@@ -10,7 +10,6 @@ export const errorHandler = (err, req, res, next) => {
     wallet_error_codes[code] ||
     p2p_error_codes[code] ||
     trade_error_codes[code] ||
-    transaction_error_codes[code] ||
     user_error_codes[code] || {
       statusCode: 500,
       message: "Internal Server Error",

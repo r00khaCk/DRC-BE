@@ -65,6 +65,7 @@ export async function walletTransaction(req, res, next) {
 
 export const getWalletBalance = async (req, res) => {
   let wallet_balance = await WalletModel.getWalletBalanceFromDB(req.headers);
+  console.log(wallet_balance, "HEEEEEEEEEREEEE");
   if (wallet_balance.status === "SELECT_QUERY_FAILED") {
     res.status(500).json({
       message: "ERROR_FETCHING_DATA",
