@@ -357,7 +357,6 @@ export const getAllCompletedP2PContracts = async (request_header) => {
       let deleted_seller_ids = get_all_deleted_contracts.rows.map(
         (row) => row.seller_id
       );
-
       if (deleted_seller_ids.includes(user_id)) {
         const get_all_completed_deleted_contracts_query =
           "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY created_at DESC";
