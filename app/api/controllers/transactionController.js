@@ -6,12 +6,10 @@ export const getAllTransactions = async (req, res, next) => {
     let get_transactions = await TransactionModel.getAllTransactions(
       req.headers
     );
-    if (get_transactions.status === "SUCCESS") {
-      return res.status(200).json({
-        message: "SUCCESS",
-        details: get_transactions.data,
-      });
-    }
+    return res.status(200).json({
+      message: "SUCCESS",
+      details: get_transactions.data,
+    });
   } catch (error) {
     next(error);
   }
