@@ -359,7 +359,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
       );
       if (deleted_seller_ids.includes(user_id)) {
         const get_all_completed_deleted_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY created_at DESC";
+          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY completed_at DESC";
         let get_all_completed_deleted_contracts =
           await database.connection.query(
             get_all_completed_deleted_contracts_query,
@@ -371,7 +371,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
         };
       } else if (!deleted_seller_ids.includes(user_id)) {
         const get_all_completed_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 ORDER BY created_at DESC";
+          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 ORDER BY completed_at DESC";
         let get_all_completed_contracts = await database.connection.query(
           get_all_completed_contracts_query,
           value
