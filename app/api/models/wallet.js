@@ -119,10 +119,8 @@ export async function walletTransaction(header_details) {
         "SELECT u.* FROM crypthubschema.deposit_withdrawal_transactions as u JOIN crypthubschema.wallet as i  on u.wallet_id = i.wallet_id WHERE user_id = $1 ORDER BY created_at DESC",
         [user_id]
       );
-      if (query_result.rows.length == 0)
-        throw new CustomError("FAILED_TO_GET_TRANSACTION_RECORD");
       return {
-        message: "SUCCESSFUL",
+        message: "SUCCESS",
         details: query_result.rows,
       };
     } else {
