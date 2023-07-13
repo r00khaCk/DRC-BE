@@ -1,7 +1,15 @@
+import { validationResult } from "express-validator";
 import * as P2PModel from "../models/p2p.js";
 
 export const addP2PContract = async (req, res, next) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        validation: "failed",
+        errors: errors.array(),
+      });
+    }
     let p2p_contract = await P2PModel.addNewP2PContractModel(
       req.body,
       req.headers
@@ -130,50 +138,26 @@ export const getAllCompletedP2PContracts = async (req, res, next) => {
   // }
 };
 
-export async function buyContract(req, res) {
+export async function buyContract(req, res, next) {
   try {
     let response = await P2PModel.buyContract(req.headers, req.body);
-    if (response.message == "CONTRACT_PURCHASE_SUCCESFUL") {
-      return res.status(200).json({
-        message: response.message,
-        details: response.details,
-      });
-    } else if (response.message == "BAD_REQUEST") {
-      return res.status(400).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(200).json({
+      message: response.message,
+      details: response.details,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function deleteContract(req, res) {
+export async function deleteContract(req, res, next) {
   try {
     let response = await P2PModel.deleteContract(req.headers, req.body);
-    if (response.message == "CONTRACT_DELETED") {
-      return res.status(200).json({
-        message: response.message,
-        details: response.details,
-      });
-    } else if (response.message == "BAD_REQUEST") {
-      return res.status(400).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(200).json({
+      message: response.message,
+      details: response.details,
     });
+  } catch (err) {
+    next(err);
   }
 }

@@ -7,11 +7,16 @@ export const registerNewUser = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({
-        success: false,
+        validation: "failed",
         errors: errors.array(),
       });
     }
     await UserModel.registerNewUserModel(req.body);
+    if (!sendVerificationEmail(req.body)) {
+      return res.status(500).json({
+        message: "VERIFICATION_EMAIL_ERROR",
+      });
+    }
     return res.status(201).json({
       message: "USER_CREATED",
     });
@@ -79,7 +84,7 @@ export const sendVerificationEmail = async (userDetails, res) => {
   }
 };
 
-export async function loginUser(req, res) {
+export async function loginUser(req, res, next) {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -89,129 +94,69 @@ export async function loginUser(req, res) {
       });
     }
     let response = await UserModel.loginUser(req.body);
-
-    if (
-      response !== "EMAIL_NOT_EXIST" &&
-      response !== "INVALID_PASSWORD" &&
-      response !== "ACCOUNT_NOT_VERIFIED"
-    ) {
-      return res.status(201).json({
-        message: response.message,
-        details: response.details,
-      });
-    } else if (response == "ACCOUNT_NOT_VERIFIED") {
-      if (!sendVerificationEmail(req.body)) {
-        return res.status(500).json({
-          message: "VERIFICATION_EMAIL_ERROR",
-        });
-      }
-      return res.status(401).json({
-        message: response,
-      });
-    } else
-      res.status(400).json({
-        message: response,
-      });
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(201).json({
+      message: response.message,
+      details: response.details,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function forgotPassword(req, res) {
+export async function forgotPassword(req, res, next) {
   try {
-    let response = await UserModel.forgotPassword(req.body);
-    if (response == "EMAIL_SENT") {
-      return res.status(200).json({
-        message: response,
-      });
-    } else if (
-      response == "EMAIL_DOES_NOT_EXIST" ||
-      response == "BAD_REQUEST"
-    ) {
+    // handles errors from the user validation
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
       return res.status(400).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
+        validation: "failed",
+        errors: errors.array(),
       });
     }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    let response = await UserModel.forgotPassword(req.body);
+    return res.status(200).json({
+      message: response,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function passwordRecovery(req, res) {
+export async function passwordRecovery(req, res, next) {
   try {
     let user_email_url = req.query.email;
     const email = { email: user_email_url };
     let check_token = await UserModel.verifyToken(req.params);
     if (check_token == "VALID_TOKEN") {
-      let response = await UserModel.passwordRecovery(email);
-      if (response !== "EMAIL_DOES_NOT_EXIST") {
-        return res.render("passwordRecoveryView");
-      } else
-        res.status(500).json({
-          message: response,
-        });
+      await UserModel.passwordRecovery(email);
+      return res.render("passwordRecoveryView");
     } else if (check_token == "INVALID_TOKEN") {
       return res.render("passwordRecoveryExpireView");
-    } else {
-      return "FAILED_TO_RETRIEVE_TOKEN";
     }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
-    });
+  } catch (err) {
+    next(err);
   }
 }
-export async function resetPassword(req, res) {
+export async function resetPassword(req, res, next) {
   try {
     let response = await UserModel.resetPassword(req.headers, req.body);
-    console.log(response, "HERE");
-    if (response == "RESET_PASSWORD_SUCCESS") {
-      return res.status(201).json({
-        message: response,
-      });
-    } else if (
-      response == "INVALID_PASSWORD" ||
-      response == "NEW_PASSWORD_CANNOT_BE_THE_SAME_AS_OLD_PASSWORD"
-    ) {
-      return res.status(401).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(201).json({
+      message: response,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function logoutUser(req, res) {
+export async function logoutUser(req, res, next) {
   try {
     const token = req.headers.authorization.split(" ")[1];
     let response = await UserModel.logoutUser(token);
-    if (response !== "LOGOUT_SUCCESS") {
-      return res.status(500).json({
-        message: response,
-      });
-    } else
-      res.status(200).json({
-        message: response,
-      });
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    res.status(200).json({
+      message: response,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
