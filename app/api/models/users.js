@@ -240,6 +240,8 @@ export async function forgotPassword(req_body) {
       );
       if (query_email.rows.length == 0)
         throw new CustomError("EMAIL_NOT_EXIST");
+      if (query_email.rows[0].account_verified == false)
+        throw new CustomError("ACCOUNT_NOT_VERIFIED");
       const send_confirmation_email = await sendConfirmationEmail(email);
       return send_confirmation_email;
     } else {
