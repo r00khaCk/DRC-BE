@@ -21,7 +21,7 @@ export const p2p_error_codes = {
   },
   FAILED_TO_FETCH_CONTRACT: {
     statusCode: 500,
-    message: "Contract had already been bought/withdrawed",
+    message: "Contract is not available",
   },
   CANNOT_BUY_OWN_CONTRACT: {
     statusCode: 400,
