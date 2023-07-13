@@ -1,6 +1,7 @@
 import database from "../../services/db.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
 import { getWalletBalance } from "../../utils/commonQueries.js";
+import { CustomError } from "../middleware/error/custom-error.js";
 
 export async function walletDeposit(header_details, body_details) {
   try {
@@ -11,7 +12,7 @@ export async function walletDeposit(header_details, body_details) {
       await database.connection.query("BEGIN;");
       const query_balance = await getWalletBalance(email);
       if (query_balance.rows.length == 0) {
-        return "FAILED_TO_FETCH_WALLET";
+        throw new CustomError("FAILED_TO_GET_BALANCE");
       }
       const final_amount = amount + query_balance.rows[0].amount;
       const query_deposit = await database.connection.query(
@@ -20,7 +21,7 @@ export async function walletDeposit(header_details, body_details) {
       );
       if (query_deposit.rows.length == 0) {
         await database.connection.query("ROLLBACK;");
-        return "FAILED_TO_DEPOSIT";
+        throw new CustomError("FAILED_TO_DEPOSIT");
       }
       const query_history = await database.connection.query(
         "INSERT INTO crypthubschema.deposit_withdrawal_transactions (wallet_id,dwt_type,dwt_amount,dwt_before,dwt_after) VALUES($1,'deposit',$2,$3,$4) RETURNING *",
@@ -33,7 +34,7 @@ export async function walletDeposit(header_details, body_details) {
       );
       if (query_history.rows.length == 0) {
         await database.connection.query("ROLLBACK;");
-        return "FAILED_TO_SAVE_TRANSACTION";
+        throw new CustomError("FAILED_TO_RECORD_TRANSACTION");
       }
       //   commit
       await database.connection.query("COMMIT;");
@@ -44,12 +45,12 @@ export async function walletDeposit(header_details, body_details) {
         },
       };
     } else {
-      return "BAD_REQUEST";
+      throw new CustomError("BAD_REQUEST");
     }
   } catch (error) {
     await database.connection.query("ROLLBACK;");
     console.log(error);
-    return "REQUEST_FAILED";
+    throw error;
   }
 }
 
@@ -61,7 +62,8 @@ export async function walletWithdraw(header_details, body_details) {
       // begin
       await database.connection.query("BEGIN;");
       const query_balance = await getWalletBalance(email);
-      if (query_balance.rows.length == 0) return "FAILED_TO_WITHDRAW";
+      if (query_balance.rows.length == 0)
+        throw new CustomError("FAILED_TO_GET_BALANCE");
       const final_amount = query_balance.rows[0].amount - amount;
       if (final_amount < 0)
         return {
@@ -76,7 +78,7 @@ export async function walletWithdraw(header_details, body_details) {
       );
       if (query_withdraw.rows.length == 0) {
         await database.connection.query("ROLLBACK;");
-        return "FAILED_TO_WITHDRAW";
+        throw new CustomError("FAILED_TO_WITHDRAW");
       }
       const query_history = await database.connection.query(
         "INSERT INTO crypthubschema.deposit_withdrawal_transactions (wallet_id,dwt_type,dwt_amount,dwt_before,dwt_after) VALUES($1,'withdraw',$2,$3,$4) RETURNING *",
@@ -89,7 +91,7 @@ export async function walletWithdraw(header_details, body_details) {
       );
       if (query_history.rows.length == 0) {
         await database.connection.query("ROLLBACK;");
-        return "FAILED_TO_SAVE_TRANSACTION";
+        throw new CustomError("FAILED_TO_RECORD_TRANSACTION");
       }
       //   commit
       await database.connection.query("COMMIT;");
@@ -100,12 +102,12 @@ export async function walletWithdraw(header_details, body_details) {
         },
       };
     } else {
-      return "BAD_REQUEST";
+      throw new CustomError("BAD_REQUEST");
     }
   } catch (error) {
     await database.connection.query("ROLLBACK;");
     console.log(error);
-    return "REQUEST_FAILED";
+    throw error;
   }
 }
 
@@ -117,26 +119,34 @@ export async function walletTransaction(header_details) {
         "SELECT u.* FROM crypthubschema.deposit_withdrawal_transactions as u JOIN crypthubschema.wallet as i  on u.wallet_id = i.wallet_id WHERE user_id = $1 ORDER BY created_at DESC",
         [user_id]
       );
-      if (query_result.rows.length == 0) return "FAILED_TO_FETCH_TRANSACTION";
+      if (query_result.rows.length == 0)
+        return {
+          message: "NO_TRANSACTION_RECORD",
+        };
       return {
         message: "SUCCESSFUL",
         details: query_result.rows,
       };
     } else {
-      return "BAD_REQUEST";
+      throw new CustomError("BAD_REQUEST");
     }
   } catch (error) {
     console.log(error);
-    return "REQUEST_FAILED";
+    throw error;
   }
 }
 
 export const getWalletBalanceFromDB = async (request_header) => {
-  let user_email = await getEmail(request_header);
-  let wallet_balance_result = await getWalletBalance(user_email);
-  if (wallet_balance_result.rows.length < 0) {
-    return { status: "SELECT_QUERY_FAILED" };
-  } else {
-    return { balance: wallet_balance_result.rows };
+  try {
+    let user_email = await getEmail(request_header);
+    let wallet_balance_result = await getWalletBalance(user_email);
+    if (wallet_balance_result.rows.length == 0) {
+      throw new CustomError("FAILED_TO_GET_BALANCE");
+    } else {
+      return { balance: wallet_balance_result.rows };
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 };

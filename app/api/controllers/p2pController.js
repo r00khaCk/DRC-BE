@@ -111,14 +111,20 @@ export const getAllCompletedP2PContracts = async (req, res, next) => {
       await P2PModel.getAllCompletedP2PContracts(req.headers);
     console.log(get_all_completed_contracts);
     if (get_all_completed_contracts.status === "CONTRACTS_FOUND") {
-      res.status(200).json({
-        message: "SUCCESS",
-        details: get_all_completed_contracts.data,
-      });
-    } else if (get_all_completed_contracts.status === "SELECT_QUERY_SUCCESS") {
-      res.status(200).json({
-        message: "No contracts found",
-      });
+      if (get_all_completed_contracts.data.length === 0) {
+        res.status(200).json({
+          message: "No contracts found",
+        });
+      } else {
+        res.status(200).json({
+          message: "SUCCESS",
+          details: get_all_completed_contracts.data,
+        });
+      }
+      // } else if (get_all_completed_contracts.status === "SELECT_QUERY_SUCCESS") {
+      //   res.status(200).json({
+      //     message: "No contracts found",
+      //   });
     }
   } catch (error) {
     next(error);
@@ -138,50 +144,26 @@ export const getAllCompletedP2PContracts = async (req, res, next) => {
   // }
 };
 
-export async function buyContract(req, res) {
+export async function buyContract(req, res, next) {
   try {
     let response = await P2PModel.buyContract(req.headers, req.body);
-    if (response.message == "CONTRACT_PURCHASE_SUCCESFUL") {
-      return res.status(200).json({
-        message: response.message,
-        details: response.details,
-      });
-    } else if (response.message == "BAD_REQUEST") {
-      return res.status(400).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(200).json({
+      message: response.message,
+      details: response.details,
     });
+  } catch (err) {
+    next(err);
   }
 }
 
-export async function deleteContract(req, res) {
+export async function deleteContract(req, res, next) {
   try {
     let response = await P2PModel.deleteContract(req.headers, req.body);
-    if (response.message == "CONTRACT_DELETED") {
-      return res.status(200).json({
-        message: response.message,
-        details: response.details,
-      });
-    } else if (response.message == "BAD_REQUEST") {
-      return res.status(400).json({
-        message: response,
-      });
-    } else {
-      return res.status(500).json({
-        message: response,
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({
-      message: error,
+    return res.status(200).json({
+      message: response.message,
+      details: response.details,
     });
+  } catch (err) {
+    next(err);
   }
 }
