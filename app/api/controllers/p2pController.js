@@ -112,7 +112,7 @@ export const getAllCompletedP2PContracts = async (req, res, next) => {
     console.log(get_all_completed_contracts);
     if (get_all_completed_contracts.status === "CONTRACTS_FOUND") {
       if (get_all_completed_contracts.data.length === 0) {
-        res.status(200).json({
+        res.status(404).json({
           message: "No contracts found",
         });
       } else {

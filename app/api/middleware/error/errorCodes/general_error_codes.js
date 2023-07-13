@@ -12,7 +12,7 @@ export const general_error_codes = {
     message: "Failed to get wallet's balance",
   },
   FAILED_TO_GET_TRANSACTION_RECORD: {
-    statusCode: 500,
+    statusCode: 404,
     message: "Failed to get transaction record",
   },
 };

@@ -120,9 +120,7 @@ export async function walletTransaction(header_details) {
         [user_id]
       );
       if (query_result.rows.length == 0)
-        return {
-          message: "NO_TRANSACTION_RECORD",
-        };
+        throw new CustomError("FAILED_TO_GET_TRANSACTION_RECORD");
       return {
         message: "SUCCESSFUL",
         details: query_result.rows,
