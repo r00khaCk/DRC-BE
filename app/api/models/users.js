@@ -84,7 +84,7 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
       subject: "Email Verification",
 
-      text: `Hi there dear customer,\nPlease click on this link to verify your account\nhttp://${env.HOST_URL}:5000/user/verify/${verificationToken}?email=${email}`,
+      text: `Hi there dear customer,\nPlease click on this link to verify your account\n${env.HOST_URL}/user/verify/${verificationToken}?email=${email}`,
     };
 
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
@@ -271,7 +271,7 @@ export async function forgotPassword(req_body) {
         from: "crypthubofficial@gmail.com",
         to: user_email,
         subject: "Password Recovery",
-        text: `Hi there dear customer,\nPlease click on this link to recover your password\nhttp://${env.HOST_URL}:5000/user/passwordRecovery/${verificationToken}?email=${user_email}\nDid not request for password recovery? You may ignore this email.`,
+        text: `Hi there dear customer,\nPlease click on this link to recover your password\n${env.HOST_URL}/user/passwordRecovery/${verificationToken}?email=${user_email}\nDid not request for password recovery? You may ignore this email.`,
       };
 
       transporter.sendMail(mailOptions, function (error, info) {
