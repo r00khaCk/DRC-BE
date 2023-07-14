@@ -6,6 +6,15 @@ ssh-add .ssh/new_do_id_rsa
 ssh-add -l
 git pull origin main
 
+
+# install dependencies
+cd app/
+npm i
+cd ..
+
+# stop and remove the containers
+docker compose down --volumes
+
 # remove any unused images 
 # Get the image IDs
 unused_image_ids=$(docker images |grep none| awk '{print $3}')
@@ -23,8 +32,5 @@ for id in $unused_image_ids; do
 done
 echo "Images removed: $removed"
 
-# down any containers
-docker compose down --volumes
-
-# up the containers
+# run the containers
 docker compose up --build
