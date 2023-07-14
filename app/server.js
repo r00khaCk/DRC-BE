@@ -9,7 +9,7 @@ import * as WalletRouter from "./api/routes/walletRoute.js";
 import * as TransactionRouter from "./api/routes/transactionRoute.js";
 import * as P2PRouter from "./api/routes/p2pRoute.js";
 import { checkAuth } from "./api/middleware/authentication/checkAuth.js";
-import { cronRedis } from "./utils/cron.mjs";
+import { cron24hr } from "./utils/cron.mjs";
 import { errorHandler } from "./api/middleware/error/error-handler.js";
 import * as RequestLogger from "./api/middleware/logger/requestLogger.js";
 
@@ -18,7 +18,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // CRON to clear REDIS
-cronRedis();
+cron24hr();
 
 app.use(morgan("dev"));
 // app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
