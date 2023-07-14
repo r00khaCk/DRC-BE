@@ -48,10 +48,10 @@ export const addNewP2PContractModel = async (
           }
 
           const add_new_p2p_contract_query =
-            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price)" +
-            "SELECT u.id, $1, $2, $3" +
-            "FROM cryptHubSchema.users as u" +
-            "WHERE u.email = $4";
+            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) " +
+            "SELECT u.id, $1, $2, $3 " +
+            "FROM cryptHubSchema.users as u " +
+            "WHERE u.email = $4 ";
 
           const add_new_p2p_contract = await database.connection.query(
             add_new_p2p_contract_query,
@@ -355,7 +355,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
       );
       if (deleted_seller_ids.includes(user_id)) {
         const get_all_completed_deleted_contracts_query =
-          "SELECT" +
+          "SELECT " +
           "p.contract_id, p.seller_id, p.currency, p.coin_amount, p.selling_price, p.created_at, p.completed_at, " +
           "CASE " +
           "WHEN p.buyer_id = $1 THEN 'bought' " +

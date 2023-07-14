@@ -2,7 +2,7 @@
 
 # Number of images to remove
 eval "$(ssh-agent -s)"
-ssh-add .ssh/new_do_id_rsa
+ssh-add /root/.ssh/new_do_id_rsa
 ssh-add -l
 git pull origin main
 
