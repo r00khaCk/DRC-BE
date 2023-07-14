@@ -105,13 +105,14 @@ export const sellCoinsModel = async (order_information, req_header) => {
         "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = $3";
 
       try {
+        await database.connection.query("BEGIN;");
         await database.connection.query(
           update_coin_balance_query,
           coin_balance_values
         );
 
         // function to add the earned amount from sale to the USD wallet
-        addEarnedAmountIntoUSDWallet(
+        await addEarnedAmountIntoUSDWallet(
           user_email,
           calculate_total_earned_result.total_earned_after_commission_deduction
         );
@@ -119,7 +120,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
         // gets all the current wallet amount
         let get_all_wallet_balance = await getWalletBalance(user_email);
 
-        addTransactionToTransactionHistory(
+        await addTransactionToTransactionHistory(
           user_email,
           calculate_total_earned_result.total_earned_after_commission_deduction,
           calculate_total_earned_result.coin_amount,
@@ -128,12 +129,14 @@ export const sellCoinsModel = async (order_information, req_header) => {
           "sell"
         );
 
+        await database.connection.query("COMMIT;");
         return {
           status: "SELL_SUCCESS",
           wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
+        await database.connection.query("ROLLBACK;");
         console.log("Error from sell transaction", error);
         throw error;
       }
