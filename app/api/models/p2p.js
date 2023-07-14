@@ -48,10 +48,10 @@ export const addNewP2PContractModel = async (
           }
 
           const add_new_p2p_contract_query =
-            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price)" +
-            "SELECT u.id, $1, $2, $3" +
-            "FROM cryptHubSchema.users as u" +
-            "WHERE u.email = $4";
+            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) " +
+            "SELECT u.id, $1, $2, $3 " +
+            "FROM cryptHubSchema.users as u " +
+            "WHERE u.email = $4 ";
 
           const add_new_p2p_contract = await database.connection.query(
             add_new_p2p_contract_query,
