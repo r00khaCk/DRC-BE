@@ -139,18 +139,18 @@ const addUserWallets = async (userEmail) => {
   console.log(userEmail);
   let values = [userEmail];
   let insert_empty_wallet_query =
-    "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id)" +
-    "SELECT 'USD', 0, u.id" +
-    "FROM cryptHubSchema.users AS u" +
-    "WHERE u.email = $1" +
-    "UNION ALL" +
-    "SELECT 'BTC', 0, u.id" +
-    "FROM cryptHubSchema.users AS u" +
-    "WHERE u.email = $1" +
-    "UNION ALL" +
-    "SELECT 'ETH', 0, u.id" +
-    "FROM cryptHubSchema.users AS u" +
-    "WHERE u.email = $1;";
+    "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) " +
+    "SELECT 'USD', 0, u.id " +
+    "FROM cryptHubSchema.users AS u " +
+    "WHERE u.email = $1 " +
+    "UNION ALL " +
+    "SELECT 'BTC', 0, u.id " +
+    "FROM cryptHubSchema.users AS u " +
+    "WHERE u.email = $1 " +
+    "UNION ALL " +
+    "SELECT 'ETH', 0, u.id " +
+    "FROM cryptHubSchema.users AS u " +
+    "WHERE u.email = $1; ";
   await database.connection.query(insert_empty_wallet_query, values);
 };
 

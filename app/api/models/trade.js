@@ -32,6 +32,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
       let update_usd_wallet =
         "UPDATE cryptHubSchema.wallet AS w SET amount = $1 FROM cryptHubSchema.users AS u WHERE u.id = w.user_id AND u.email = $2 AND w.currency = 'USD'";
       try {
+        await database.connection.query("BEGIN;");
         await database.connection.query(update_usd_wallet, balance_values);
 
         //adds the bought coin into the user wallet (currency based on order)
@@ -55,12 +56,14 @@ export const buyCoinsModel = async (order_information, req_header) => {
         );
 
         // return result
+        await database.connection.query("COMMIT;");
         return {
           status: "BUY_SUCCESS",
           wallet_balance: get_all_wallet_balance.rows,
           coin_currency: coin_currency,
         };
       } catch (error) {
+        await database.connection.query("ROLLBACK;");
         console.log("Error from buy transaction", error);
         throw new CustomError("TRADE_QUERY_FAILED");
       }
@@ -132,7 +135,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
         };
       } catch (error) {
         console.log("Error from sell transaction", error);
-        throw new CustomError("TRADE_QUERY_FAILED");
+        throw error;
       }
     }
   } else {
@@ -284,18 +287,17 @@ const addTransactionToTransactionHistory = async (
   ];
 
   const add_transaction_query =
-    "INSERT INTO cryptHubSchema.transactions (wallet_id, user_id, transaction_amount,coin_amount,commission_deduction_5, currency, trade_type)" +
-    "SELECT w.wallet_id, u.id, $1, $2, $3, $4, $5" +
-    "FROM cryptHubSchema.users AS u" +
-    "JOIN cryptHubSchema.wallet AS w" +
-    "ON u.id = w.user_id" +
-    "WHERE u.email = $6 AND w.currency = $4";
+    "INSERT INTO cryptHubSchema.transactions (wallet_id, user_id, transaction_amount,coin_amount,commission_deduction_5, currency, trade_type) " +
+    "SELECT w.wallet_id, u.id, $1, $2, $3, $4, $5 " +
+    "FROM cryptHubSchema.users AS u " +
+    "JOIN cryptHubSchema.wallet AS w " +
+    "ON u.id = w.user_id " +
+    "WHERE u.email = $6 AND w.currency = $4 ";
 
   try {
     await database.connection.query(add_transaction_query, values);
   } catch (error) {
     console.log(error);
-    // throw Error(error);
     throw new CustomError("TRADE_QUERY_ERROR");
   }
 };
