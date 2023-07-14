@@ -11,7 +11,7 @@ const env = process.env;
 export const buyCoinsModel = async (order_information, req_header) => {
   if (order_information && req_header) {
     const user_email = await getEmail(req_header);
-
+    const { input_amount } = order_information;
     // gets the returned value from calculateTotalBuyAmount() and stores it in calculate_total_model_result
     const calculate_total_model_result = await calculateTotalBuyAmount(
       order_information,
@@ -25,8 +25,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
       //calculates the new balance for the USD wallet
       let balance_from_wallet =
         calculate_total_model_result.wallet_balance.rows[0].amount;
-      const new_balance =
-        balance_from_wallet - calculate_total_model_result.total_amount;
+      const new_balance = balance_from_wallet - input_amount;
 
       // query to update the USD wallet
       let balance_values = [new_balance.toFixed(2), user_email];
@@ -48,7 +47,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         const { coin_currency } = order_information;
         addTransactionToTransactionHistory(
           user_email,
-          calculate_total_model_result.total_amount,
+          input_amount,
           calculate_total_model_result.coin_amount,
           0,
           coin_currency,
@@ -148,7 +147,7 @@ const calculateTotalBuyAmount = async (order_information, user_email) => {
     const { current_price, coin_amount } = order_information;
     let total_amount = current_price * coin_amount;
 
-    //check if wallet has enough money (virtual) in the user's USDT wallet
+    //check if wallet has enough money (virtual) in the user's USD wallet
     let wallet_balance = await getWalletBalance(user_email);
     if (wallet_balance.rows[0].amount < total_amount.toFixed(2)) {
       return { status: "BALANCE_INSUFFICIENT" };
