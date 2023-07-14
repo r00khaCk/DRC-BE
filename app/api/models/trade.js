@@ -36,7 +36,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         await database.connection.query(update_usd_wallet, balance_values);
 
         //adds the bought coin into the user wallet (currency based on order)
-        addBoughtCurrencyIntoWallet(
+        await addBoughtCurrencyIntoWallet(
           order_information,
           calculate_total_model_result.coin_amount,
           user_email
@@ -46,7 +46,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         let get_all_wallet_balance = await getWalletBalance(user_email);
 
         const { coin_currency } = order_information;
-        addTransactionToTransactionHistory(
+        await addTransactionToTransactionHistory(
           user_email,
           input_amount,
           calculate_total_model_result.coin_amount,
@@ -64,7 +64,7 @@ export const buyCoinsModel = async (order_information, req_header) => {
         };
       } catch (error) {
         await database.connection.query("ROLLBACK;");
-        console.log("Error from buy transaction", error);
+        console.log(error);
         throw new CustomError("TRADE_QUERY_FAILED");
       }
     }
