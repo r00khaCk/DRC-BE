@@ -1,13 +1,8 @@
-#!/bin/bash
+# Script is run when there is an update in the main while the server is running
 
+# down the containers
+docker compose down --volumes &&
 # pull the updates
-error_message="Please make sure you have the correct access rights and the repository exists."
-success_message="Already up to date."
-
-
-cd DRC-BE/
-echo "In DRC-BE directory"
-eval "$(ssh-agent -s)" && ssh-add ../.ssh/new_do_id_rsa && ssh-add -l &&
 pull_command=$(git pull origin main)
 if echo "$pull_command" | grep -q "$error_message"; then
         eval "$(ssh-agent -s)" && ssh-add ../.ssh/new_do_id_rsa && ssh-add -l &&

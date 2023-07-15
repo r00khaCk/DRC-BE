@@ -2,6 +2,6 @@ app/.env
 app/node_modules/
 app/package-lock.json
 db-data
-config/dockerClear.sh
+config/script_in_server.sh
 app/sql-queries/
 app/api/middleware/logger/access.log
