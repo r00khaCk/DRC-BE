@@ -4,4 +4,3 @@
 ./db-data
 .config/script_in_server.sh
 ./app/sql-queries/
-./app/api/middleware/logger/access.log
