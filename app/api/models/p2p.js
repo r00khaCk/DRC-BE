@@ -367,7 +367,7 @@ export const getAllCompletedP2PContracts = async (request_header) => {
           "SELECT d.*, 'delete' AS transaction_type " +
           "FROM crypthubschema.p2p_deleted AS d " +
           "WHERE d.seller_id = $1 " +
-          "ORDER BY created_at DESC; ";
+          "ORDER BY completed_at DESC; ";
         let get_all_completed_deleted_contracts =
           await database.connection.query(
             get_all_completed_deleted_contracts_query,
