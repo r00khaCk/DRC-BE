@@ -136,7 +136,6 @@ export const changeAccountStatus = async (userEmailFromToken) => {
 };
 
 const addUserWallets = async (userEmail) => {
-  console.log(userEmail);
   let values = [userEmail];
   let insert_empty_wallet_query =
     "INSERT INTO cryptHubSchema.wallet (currency, amount, user_id) " +
