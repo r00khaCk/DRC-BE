@@ -2,20 +2,27 @@
 
 Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto trading website which offers two main services which is a Peer-to-Peer (P2P) and a real-time trading market.
 
-## Server built using:
+# Table of Content
+
+- [Server components](#server-components)
+- [Scripts](#scripts)
+- [Ports](#ports)
+- [API](#apis-application-programming-interfaces)
+
+# Crypthub Server
+
+## Server components:
 
 - [Nodejs](https://nodejs.org/en):
 - [PostgresDB](https://www.postgresql.org/):
 - [Redis](https://redis.io/):
 - [Nginx](https://www.nginx.com/):
 
-## Scripts used:
+## Scripts:
 
 <!-- - `sudo docker-compose up` : to run the containers (Node and Postgres).
 - `sudo docker-compose down` : to stop and remove the containers (Node and Postgres).
 - `sudo docker exec -it db-postgres-container psql -U [db username] -d [database name]` : to access the postgress container. -->
-
-### Scripts:
 
 - `clearUnusedImages.sh`:
 
@@ -32,9 +39,10 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 - `update.sh`:
   - This script is executed using `crontab` to automatically pull the changes from the main branch for the purpose of getting changes.
 
-### Ports:
+## Ports:
 
-If error appears such as this: `bind: address already in use.` <br>
+If error appears such as this: <br>
+`bind: address already in use.` <br>
 Resolve the issue by using the follwoing commands:
 
 - `sudo lsof -i:[PORT]`:
