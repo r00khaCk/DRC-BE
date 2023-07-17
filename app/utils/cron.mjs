@@ -8,7 +8,7 @@ const redisClient = new Redis({
   password: env.REDIS_PASSWORD,
 });
 
-const backupPath = "/usr/src/app/backups/";
+const backupPath = "/usr/src/app/backups/access-logs/";
 const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
 
 export function cronRedis() {
@@ -21,13 +21,13 @@ export function cronRedis() {
 
 // backups the access logs every 30 minutes
 export const backupAccessLog = () => {
-  var task = cron.schedule("30 * * * *", () => {
+  var task = cron.schedule("*/30 * * * *", () => {
     let timestamp = Date.now();
     console.log("---------------------------------------");
     console.log("Access log backup");
     fs.copyFile(
       accessLogPath,
-      `${backupPath}/access-log-${timestamp}.log`,
+      `${backupPath}access-log-${timestamp}.log`,
       (error) => {
         if (error) {
           console.log("Error backing up access log: ", error);
@@ -40,12 +40,16 @@ export const backupAccessLog = () => {
   task.start();
 };
 
-// clears the access logs at 6pm daily
+// clears the access logs at 00:30 daily
 export const deleteAccessLog = () => {
-  var task = cron.schedule("0 18 * * *", () => {
+  var task = cron.schedule("30 0 * * *", () => {
     console.log("------------------");
     console.log("deleting old access logs");
     fs.unlink(`${accessLogPath}`, (err) => {
+      if (err) throw err;
+      console.log("Access log deleted");
+    });
+    fs.rmdir(`${backupPath}`, (err) => {
       if (err) throw err;
       console.log("Access log deleted");
     });
