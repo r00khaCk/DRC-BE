@@ -1,4 +1,4 @@
-# DRC-BE
+# DRC-BE component
 
 Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto trading website which offers two main services which is a Peer-to-Peer (P2P) and a real-time trading market.
 
