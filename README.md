@@ -13,10 +13,11 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 
 ## Server components:
 
-- [Nodejs](https://nodejs.org/en):
-- [PostgresDB](https://www.postgresql.org/):
-- [Redis](https://redis.io/):
-- [Nginx](https://www.nginx.com/):
+- [Nodejs](https://nodejs.org/en): A runtime environment for executing JavaScript code on the server-side, providing an event-driven, non-blocking I/O model that enables scalable and efficient server-side applications.
+- [PostgresDB](https://www.postgresql.org/): A powerful and feature-rich open-source relational database management system that provides data persistence and advanced SQL querying capabilities.
+- [Redis](https://redis.io/): An in-memory data structure store that can be used as a database, cache, or message broker. It offers fast and efficient data access and supports various data structures and operations.
+
+- [Nginx](https://www.nginx.com/): A high-performance web server and reverse proxy server that excels at serving static content, handling high traffic loads, and efficiently distributing incoming requests to backend servers.
 
 ## Scripts:
 
