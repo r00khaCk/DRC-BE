@@ -65,7 +65,6 @@ export const getAllCompletedP2PContracts = async (req, res, next) => {
   try {
     let get_all_completed_contracts =
       await P2PModel.getAllCompletedP2PContracts(req.headers);
-    console.log(get_all_completed_contracts);
     if (get_all_completed_contracts.status === "CONTRACTS_FOUND") {
       res.status(200).json({
         message: "SUCCESS",

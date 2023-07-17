@@ -21,26 +21,23 @@ const __dirname = path.dirname(__filename);
 cronRedis();
 
 // Backups & delte the access logs
-deleteAccessLog();
 backupAccessLog();
+deleteAccessLog();
 
-app.use(morgan("dev"));
-// app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
-// app.use(morgan("combined"));
+app.use(morgan("combined", { stream: RequestLogger.accessLogStream }));
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "./api/views"));
-// app.use(cookieParser());
 
 // middleware that requests will go through and responses that are sent back to the client will have headers appended to it
 app.use((req, res, next) => {
-  // const allowedOrigin = "https://crypthub-app.vercel.app";
-  // if (req.headers.origin !== allowedOrigin) {
-  //   res.status(403).send("FORBIDDEN");
-  // }
+  const allowedOrigin = "https://crypthub-app.vercel.app";
+  if (req.headers.origin !== allowedOrigin) {
+    res.status(403).send("FORBIDDEN");
+  }
 
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
@@ -63,11 +60,5 @@ app.use("/transaction", checkAuth, TransactionRouter.router);
 app.use("/p2p", P2PRouter.router);
 
 app.use(errorHandler);
-// app.use("/test", testRouter);
-// app.use((error, req, res, next) => {
-//   if (error) {
-//     console.log(error);
-//     res.status(500).send({ error });
-//   }
-// });
+
 app.listen(5000, () => console.log("Server running on port 5000"));

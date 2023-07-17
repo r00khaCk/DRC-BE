@@ -1,7 +1,6 @@
 import * as TransactionModel from "../models/transaction.js";
 
 export const getAllTransactions = async (req, res, next) => {
-  // console.log(req.headers);
   try {
     let get_transactions = await TransactionModel.getAllTransactions(
       req.headers

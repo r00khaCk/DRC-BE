@@ -137,7 +137,7 @@ export const sellCoinsModel = async (order_information, req_header) => {
         };
       } catch (error) {
         await database.connection.query("ROLLBACK;");
-        console.log("Error from sell transaction", error);
+        console.log(error);
         throw error;
       }
     }
@@ -167,7 +167,7 @@ const calculateTotalBuyAmount = async (order_information, user_email) => {
       };
     }
   } catch (error) {
-    console.log(Error(error));
+    console.log(error);
     throw new CustomError("BUY_ERROR");
   }
 };

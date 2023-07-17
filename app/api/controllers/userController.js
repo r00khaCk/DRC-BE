@@ -29,7 +29,6 @@ export const registerNewUser = async (req, res, next) => {
 export const verifyAccount = async (req, res) => {
   try {
     let user_email_url = req.query.email;
-    console.log("user email from verify token: ", user_email_url);
 
     const email = { email: user_email_url };
     let check_token = await UserModel.verifyToken(req.params);
