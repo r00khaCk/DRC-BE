@@ -8,7 +8,7 @@ const redisClient = new Redis({
   password: env.REDIS_PASSWORD,
 });
 
-const backupPath = "/usr/src/app/backups/access-logs/";
+const backupPath = "/usr/src/app/backups/access-log/";
 const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
 
 export function cronRedis() {
