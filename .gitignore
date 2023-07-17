@@ -5,3 +5,4 @@ db-data
 scripts/
 app/sql-queries/
 app/api/middleware/logger/access.log
+app/backups/
