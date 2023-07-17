@@ -2,6 +2,7 @@ import cron from "node-cron";
 import Redis from "ioredis";
 import fs from "fs";
 import { google } from "googleapis";
+import path from "path";
 
 const env = process.env;
 const crypthub_backup = JSON.parse(env.DB_BACKUP_PK);
@@ -24,96 +25,106 @@ function redisClearCache() {
   redisClient.zremrangebyscore("blacklisted", 0, time);
 }
 
-backupDB();
+// Command to execute
+// await $`sudo docker exec -it db-postgres-container pg_dumpall -c -U postgress > backup.sql`;
 
-function backupDB() {
-  const auth = new google.auth.JWT(
-    crypthub_backup.client_email,
-    null,
-    crypthub_backup.private_key,
-    ["https://www.googleapis.com/auth/drive"]
-  );
 
-  auth.authorize((err) => {
-    if (err) {
-      console.error("Error authenticating:", err);
-      return;
-    }
+// backupDB();
 
-    console.log("Authentication successful.");
+// function backupDB() {
+//   const auth = new google.auth.JWT(
+//     crypthub_backup.client_email,
+//     null,
+//     crypthub_backup.private_key,
+//     ["https://www.googleapis.com/auth/drive"]
+//   );
 
-    // Create a Google Drive instance
-    const drive = google.drive({
-      version: "v3",
-      auth: auth,
-    });
+//   auth.authorize((err) => {
+//     if (err) {
+//       console.error("Error authenticating:", err);
+//       return;
+//     }
 
-    // Specify the path to the folder you want to upload
-    const folderPath = "/var/lib/postgresql/data";
-    // https://drive.google.com/drive/folders/1BLuWIvpeiGhjOM3SZ-g4hiMTgf3qbjS1?usp=sharing
+//     console.log("Authentication successful.");
 
-    // Upload the folder to Google Drive
-    function uploadFolderToDrive(folderPath) {
-      const folderMetadata = {
-        name: "Database Backup",
-        mimeType: "application/vnd.google-apps.folder",
-        parents: ["1BLuWIvpeiGhjOM3SZ-g4hiMTgf3qbjS1"],
-      };
+//     // Create a Google Drive instance
+//     const drive = google.drive({
+//       version: "v3",
+//       auth: auth,
+//     });
 
-      drive.files.create(
-        {
-          resource: folderMetadata,
-          fields: "id",
-        },
-        (err, folder) => {
-          if (err) {
-            console.error("Error creating folder:", err);
-            return;
-          }
+//     // Specify the path to the folder you want to upload
+//     const folderPath = "/usr/src/backup";
+//     // https://drive.google.com/drive/folders/1BLuWIvpeiGhjOM3SZ-g4hiMTgf3qbjS1?usp=sharing
 
-          console.log("Folder created with ID:", folder.data.id);
+//     // Upload the folder to Google Drive
+//     function uploadFolderToDrive(folderPath) {
+//       const folderMetadata = {
+//         name: "Database Backup",
+//         mimeType: "application/vnd.google-apps.folder",
+//         parents: ["1BLuWIvpeiGhjOM3SZ-g4hiMTgf3qbjS1"],
+//       };
 
-          uploadFilesInFolder(folder.data.id, folderPath);
-        }
-      );
-    }
+//       drive.files.create(
+//         {
+//           resource: folderMetadata,
+//           fields: "id",
+//         },
+//         (err, folder) => {
+//           if (err) {
+//             console.error("Error creating folder:", err);
+//             return;
+//           }
 
-    // Upload individual files inside the folder
-    function uploadFilesInFolder(folderId, folderPath) {
-      const files = fs.readdirSync(folderPath);
+//           console.log("Folder created with ID:", folder.data.id);
 
-      files.forEach((file) => {
-        const filePath = `${folderPath}/${file}`;
+//           uploadFilesInFolder(folder.data.id, folderPath);
+//         }
+//       );
+//     }
 
-        const fileMetadata = {
-          name: file,
-          parents: [folderId],
-        };
+//     function uploadFilesInFolder(folderId, folderPath) {
+//       const files = fs.readdirSync(folderPath);
 
-        const media = {
-          mimeType: "application/octet-stream",
-          body: fs.createReadStream(filePath),
-        };
+//       files.forEach((file) => {
+//         const filePath = path.join(folderPath, file);
+//         const fileStats = fs.statSync(filePath);
 
-        drive.files.create(
-          {
-            resource: fileMetadata,
-            media: media,
-            fields: "id",
-          },
-          (err, uploadedFile) => {
-            if (err) {
-              console.error("Error uploading file:", err);
-              return;
-            }
+//         if (fileStats.isDirectory()) {
+//           // If it's a directory, call the function recursively to handle subdirectories
+//           uploadFilesInFolder(folderId, filePath);
+//         } else {
+//           // If it's a file, upload it to Google Drive
+//           const fileMetadata = {
+//             name: file,
+//             parents: [folderId],
+//           };
 
-            console.log("File uploaded with ID:", uploadedFile.data.id);
-          }
-        );
-      });
-    }
+//           const media = {
+//             mimeType: "application/octet-stream",
+//             body: fs.createReadStream(filePath),
+//           };
 
-    // Call the function to start the upload process
-    uploadFolderToDrive(folderPath);
-  });
-}
+//           drive.files.create(
+//             {
+//               resource: fileMetadata,
+//               media: media,
+//               fields: "id",
+//             },
+//             (err, uploadedFile) => {
+//               if (err) {
+//                 console.error("Error uploading file:", err);
+//                 return;
+//               }
+
+//               console.log("File uploaded with ID:", uploadedFile.data.id);
+//             }
+//           );
+//         }
+//       });
+//     }
+
+//     // Call the function to start the upload process
+//     uploadFolderToDrive(folderPath);
+//   });
+// }

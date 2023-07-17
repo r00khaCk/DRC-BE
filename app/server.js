@@ -17,7 +17,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// CRON to clear REDIS
+// CRON job every 24 hours
 cron24hr();
 
 app.use(morgan("dev"));
