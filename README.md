@@ -8,8 +8,22 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 - [Scripts](#scripts)
 - [Ports](#ports)
 - [API](#apis-application-programming-interfaces)
+- [Entity Relational Diagram]()
 
 # Crypthub Server
+
+## Crypthub Entity Relational Diagram (ERD)
+
+![Crypthub ERD](./app/assets/CryptHub-ERD.png)
+
+- Tables in ERD consists of:
+  - users
+  - wallet
+  - transactions
+  - deposit_withdrawal_transactions
+  - p2p_contracts
+  - p2p_completed
+  - p2p_deleted
 
 ## Server components:
 
