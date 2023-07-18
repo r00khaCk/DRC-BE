@@ -8,7 +8,8 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 - [Scripts](#scripts)
 - [Ports](#ports)
 - [API](#apis-application-programming-interfaces)
-- [Entity Relational Diagram]()
+- [Entity Relational Diagram](#crypthub-entity-relational-diagram-erd)
+- [Backend System Flow]()
 
 # Crypthub Server
 
@@ -33,11 +34,11 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 
 - [Nginx](https://www.nginx.com/): A high-performance web server and reverse proxy server that excels at serving static content, handling high traffic loads, and efficiently distributing incoming requests to backend servers.
 
-## Scripts:
+### **Crypthub Backend System Flow**
 
-<!-- - `sudo docker-compose up` : to run the containers (Node and Postgres).
-- `sudo docker-compose down` : to stop and remove the containers (Node and Postgres).
-- `sudo docker exec -it db-postgres-container psql -U [db username] -d [database name]` : to access the postgress container. -->
+![Backend System Diagram](./app/assets/Crypthub-System-Flow.png)
+
+## Scripts:
 
 - `clearUnusedImages.sh`:
 
