@@ -244,6 +244,15 @@ Below is the list of APIs that the client website uses:
 - **Description:** Retrieves all of user's deposit and withdrawal history
 - **Request:** Req.headers
 
+```json
+{
+  "message": "SUCCESS",
+  "details": {
+    "balance": 60000
+  }
+}
+```
+
 #### Get wallet balance
 
 - **Endpoint:** `/currentWalletBalance`
