@@ -37,7 +37,6 @@ app.set("views", path.join(__dirname, "./api/views"));
 app.use((req, res, next) => {
   const allowedOrigin = env.ORIGIN;
   const allowedHost = env.HOST;
-  console.log(req.headers.host);
   if (
     req.headers.origin !== allowedOrigin &&
     req.headers.host !== allowedHost
