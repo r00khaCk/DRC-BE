@@ -1,0 +1,7 @@
+{
+  "type": "module",
+  "dependencies": {
+    "googleapis": "^122.0.0",
+    "node-cron": "^3.0.2"
+  }
+}

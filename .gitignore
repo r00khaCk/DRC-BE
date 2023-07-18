@@ -2,7 +2,10 @@ app/.env
 app/node_modules/
 app/package-lock.json
 db-data
-scripts/
+config/
 app/sql-queries/
 app/api/middleware/logger/access.log
 app/backups/
+package-lock.json
+node_modules/
+scripts/

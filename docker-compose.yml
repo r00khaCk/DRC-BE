@@ -49,5 +49,6 @@ services:
       - app
     networks:
       - backend
+
 networks:
   backend:

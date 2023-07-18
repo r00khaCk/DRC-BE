@@ -43,7 +43,7 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 ## Ports:
 
 If error appears such as this: <br>
-`bind: address already in use.` <br>
+`listen tcp4 0.0.0.0:[PORT]: bind: address already in use.` <br>
 Resolve the issue by using the follwoing commands:
 
 - `sudo lsof -i:[PORT]`:
