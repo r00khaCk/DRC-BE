@@ -11,6 +11,7 @@ const redisClient = new Redis({
 export const checkAuth = async (req, res, next) => {
   try {
     const token = req.headers.authorization.split(" ")[1];
+    console.log(token);
     let isTokenBlacklisted = await checkBlacklist(token);
     if (isTokenBlacklisted == "TOKEN_IS_VALID") {
       jwt.verify(token, env.SECRET_KEY);

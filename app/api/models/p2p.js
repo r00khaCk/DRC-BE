@@ -1,5 +1,4 @@
 import database from "../../services/db.js";
-
 import { CustomError } from "../middleware/error/custom-error.js";
 import { getCurrentCoinAmount } from "./trade.js";
 import { getEmail, getID } from "../../utils/commonFunctions.js";
@@ -29,7 +28,6 @@ export const addNewP2PContractModel = async (
       let user_id = await getID(request_header);
       let number_of_contract = await getNumberOfContractsSold(user_id);
       if (number_of_contract.rows[0].number_of_contract >= 5) {
-        // await database.connection.query("COMMIT;");
         throw new CustomError("CONTRACT_LIMIT_REACHED");
       } else {
         try {
@@ -50,7 +48,10 @@ export const addNewP2PContractModel = async (
           }
 
           const add_new_p2p_contract_query =
-            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) SELECT u.id, $1, $2, $3 FROM cryptHubSchema.users as u WHERE u.email = $4";
+            "INSERT INTO crypthubschema.p2p_contracts (seller_id, currency, coin_amount, selling_price) " +
+            "SELECT u.id, $1, $2, $3 " +
+            "FROM cryptHubSchema.users as u " +
+            "WHERE u.email = $4 ";
 
           const add_new_p2p_contract = await database.connection.query(
             add_new_p2p_contract_query,
@@ -66,13 +67,11 @@ export const addNewP2PContractModel = async (
         } catch (error) {
           await database.connection.query("ROLLBACK;");
           console.log(error);
-          // return { status: "INPUT_QUERY_FAILURE" };
           throw new CustomError("INPUT_QUERY_FAILURE");
         }
       }
     }
   } else {
-    // return { status: "BAD_REQUEST" };
     throw new CustomError("BAD_REQUEST");
   }
 };
@@ -88,7 +87,6 @@ export const getOpenContractsModel = async () => {
     return { status: "SELECT_QUERY_SUCCESS", data: get_all_openContracts.rows };
   } catch (error) {
     console.log(error);
-    // return { status: "SELECT_QUERY_FAILURE" };
     throw new CustomError("SELECT_QUERY_FAILURE");
   }
 };
@@ -112,11 +110,9 @@ export const getOngoingContractsModel = async (request_header) => {
       };
     } catch (error) {
       console.log(error);
-      // return { status: "SELECT_QUERY_FAILURE" };
       throw new CustomError("SELECT_QUERY_FAILURE");
     }
   } else {
-    // return { status: "BAD_REQUEST" };
     throw new CustomError("BAD_REQUEST");
   }
 };
@@ -341,7 +337,7 @@ export async function deleteContract(req_headers, req_body) {
     throw error;
   }
 }
-//SOME FIXES TODO
+
 // gets all the completed p2p contracts for users [bought, sold and deleted]
 export const getAllCompletedP2PContracts = async (request_header) => {
   let user_id = await getID(request_header);
@@ -359,7 +355,19 @@ export const getAllCompletedP2PContracts = async (request_header) => {
       );
       if (deleted_seller_ids.includes(user_id)) {
         const get_all_completed_deleted_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 UNION SELECT d.*, 'delete' AS transaction_type FROM crypthubschema.p2p_deleted AS d WHERE d.seller_id = $1 ORDER BY completed_at DESC";
+          "SELECT " +
+          "p.contract_id, p.seller_id, p.currency, p.coin_amount, p.selling_price, p.created_at, p.completed_at, " +
+          "CASE " +
+          "WHEN p.buyer_id = $1 THEN 'bought' " +
+          "WHEN p.seller_id = $1 THEN 'sold' " +
+          "END AS transaction_type " +
+          "FROM crypthubschema.p2p_completed AS p " +
+          "WHERE p.buyer_id = $1 OR p.seller_id = $1 " +
+          "UNION " +
+          "SELECT d.*, 'delete' AS transaction_type " +
+          "FROM crypthubschema.p2p_deleted AS d " +
+          "WHERE d.seller_id = $1 " +
+          "ORDER BY created_at DESC; ";
         let get_all_completed_deleted_contracts =
           await database.connection.query(
             get_all_completed_deleted_contracts_query,
@@ -371,7 +379,15 @@ export const getAllCompletedP2PContracts = async (request_header) => {
         };
       } else if (!deleted_seller_ids.includes(user_id)) {
         const get_all_completed_contracts_query =
-          "SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'bought' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.buyer_id = $1 UNION SELECT p.contract_id,p.seller_id,p.currency,p.coin_amount,p.selling_price,p.created_at,p.completed_at, 'sold' AS transaction_type FROM crypthubschema.p2p_completed AS p WHERE p.seller_id = $1 ORDER BY completed_at DESC";
+          "SELECT " +
+          "p.contract_id, p.seller_id, p.currency, p.coin_amount, p.selling_price, p.created_at, p.completed_at, " +
+          "CASE " +
+          "WHEN p.buyer_id = $1 THEN 'bought' " +
+          "WHEN p.seller_id = $1 THEN 'sold' " +
+          "END AS transaction_type " +
+          "FROM crypthubschema.p2p_completed AS p " +
+          "WHERE p.buyer_id = $1 OR p.seller_id = $1 " +
+          "ORDER BY completed_at DESC ";
         let get_all_completed_contracts = await database.connection.query(
           get_all_completed_contracts_query,
           value
@@ -385,17 +401,14 @@ export const getAllCompletedP2PContracts = async (request_header) => {
       }
     } catch (error) {
       console.log(error);
-      // return { status: "SELECT_QUERY_FAILURE" };
       throw new CustomError("SELECT_QUERY_FAILURE");
     }
   } else {
-    // return { status: "BAD_REQUEST" };
     throw new CustomError("BAD_REQUEST");
   }
 };
 
 //-------FUNCTIONS USED WITHIN THIS MODEL-----------
-
 const updateCoinAmountInWallet = async (
   new_coin_amount,
   user_email,

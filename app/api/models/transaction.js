@@ -18,12 +18,10 @@ export const getAllTransactions = async (request_headers) => {
       );
       return { status: "SUCCESS", data: get_all_transactions.rows };
     } catch (error) {
-      console.log("Error from get_all_transactions: ", error);
-      // return { status: "QUERY_FAIL" };
+      console.log(error);
       throw new CustomError("FAILED_TO_GET_TRANSACTION_RECORD");
     }
   } else {
-    // return { status: "BAD_REQUEST" };
     throw new CustomError("BAD_REQUEST");
   }
 };
