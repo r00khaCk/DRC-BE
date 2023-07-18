@@ -17,7 +17,7 @@ const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// CRON to clear REDIS
+// Clear redis
 cronRedis();
 
 // Backups & delte the access logs
