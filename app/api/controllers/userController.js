@@ -81,6 +81,9 @@ export async function loginUser(req, res, next) {
       details: response.details,
     });
   } catch (err) {
+    if (err.code == "ACCOUNT_NOT_VERIFIED") {
+      sendVerificationEmail(req.body);
+    }
     next(err);
   }
 }
