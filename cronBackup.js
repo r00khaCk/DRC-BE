@@ -11,7 +11,7 @@ const crypthub_backup = googleJSON.privateKey;
 cronBackup24hr();
 
 function cronBackup24hr() {
-  var task = cron.schedule("12 10 * * *", () => {
+  var task = cron.schedule("0 0 0 * * *", () => {
     dumpDB();
     backupData();
   });
