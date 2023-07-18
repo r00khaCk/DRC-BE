@@ -34,8 +34,11 @@ app.set("views", path.join(__dirname, "./api/views"));
 
 // middleware that requests will go through and responses that are sent back to the client will have headers appended to it
 app.use((req, res, next) => {
-  const allowedOrigin = "https://crypthub-app.vercel.app";
-  if (req.headers.origin !== allowedOrigin) {
+  const allowedOrigin = [
+    "https://crypthub-app.vercel.app",
+    "https://mail.google.com/",
+  ];
+  if (!allowedOrigin.includes(req.headers.origin)) {
     res.status(403).send("FORBIDDEN");
   }
 
