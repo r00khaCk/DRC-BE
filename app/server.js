@@ -16,6 +16,7 @@ import * as RequestLogger from "./api/middleware/logger/requestLogger.js";
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const env = process.env;
 
 // Clear redis
 cronRedis();
@@ -34,13 +35,15 @@ app.set("views", path.join(__dirname, "./api/views"));
 
 // middleware that requests will go through and responses that are sent back to the client will have headers appended to it
 app.use((req, res, next) => {
-  // const allowedOrigin = [
-  //   "https://crypthub-app.vercel.app",
-  //   "https://mail.google.com/",
-  // ];
-  // if (!allowedOrigin.includes(req.headers.origin)) {
-  //   res.status(403).send("FORBIDDEN");
-  // }
+  const allowedOrigin = env.ORIGIN;
+  const allowedHost = env.HOST;
+  console.log(req.headers.host);
+  if (
+    req.headers.origin !== allowedOrigin &&
+    req.headers.host !== allowedHost
+  ) {
+    res.status(403).send("FORBIDDEN");
+  }
 
   res.header("Access-Control-Allow-Origin", "*");
   res.header(
