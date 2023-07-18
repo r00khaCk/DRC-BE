@@ -1,11 +1,8 @@
 import cron from "node-cron";
 import Redis from "ioredis";
 import fs from "fs";
-import { google } from "googleapis";
-import path from "path";
 
 const env = process.env;
-const crypthub_backup = JSON.parse(env.DB_BACKUP_PK);
 const backupPath = "/usr/src/app/backups/access-logs/";
 const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
 
