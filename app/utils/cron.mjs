@@ -1,27 +1,35 @@
 import cron from "node-cron";
 import Redis from "ioredis";
 import fs from "fs";
+import { google } from "googleapis";
+import path from "path";
+
 const env = process.env;
+const crypthub_backup = JSON.parse(env.DB_BACKUP_PK);
+const backupPath = "/usr/src/app/backups/access-logs/";
+const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
+
 const redisClient = new Redis({
   host: "redis",
   port: 6379,
   password: env.REDIS_PASSWORD,
 });
 
-const backupPath = "/usr/src/app/backups/access-log/";
-const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
-
 export function cronRedis() {
   var task = cron.schedule("0 0 0 * * *", () => {
-    let time = Date.now() - 1000 * 86400;
-    redisClient.zremrangebyscore("blacklisted", 0, time);
+    redisClearCache();
   });
   task.start();
 }
 
+function redisClearCache() {
+  let time = Date.now() - 1000 * 86400;
+  redisClient.zremrangebyscore("blacklisted", 0, time);
+}
+
 // backups the access logs every 30 minutes
 export const backupAccessLog = () => {
-  var task = cron.schedule("*/30 * * * *", () => {
+  var task = cron.schedule("30 * * * *", () => {
     let timestamp = Date.now();
     console.log("---------------------------------------");
     console.log("Access log backup");
