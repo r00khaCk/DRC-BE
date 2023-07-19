@@ -71,9 +71,6 @@ export const deleteAccessLog = () => {
         })
       );
 
-      // Remove the empty backup folder
-      await rmdir(backupPath);
-
       console.log("Access logs deleted");
     } catch (err) {
       console.error("Error deleting access logs:", err);
