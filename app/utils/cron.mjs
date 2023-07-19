@@ -1,10 +1,15 @@
 import cron from "node-cron";
 import Redis from "ioredis";
 import fs from "fs";
+import { promisify } from "util";
 
 const env = process.env;
 const backupPath = "/usr/src/app/backups/access-logs/";
 const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
+
+const readdir = promisify(fs.readdir);
+const unlink = promisify(fs.unlink);
+const rmdir = promisify(fs.rmdir);
 
 const redisClient = new Redis({
   host: "redis",
@@ -47,17 +52,33 @@ export const backupAccessLog = () => {
 
 // clears the access logs at 00:30 daily
 export const deleteAccessLog = () => {
-  var task = cron.schedule("30 0 * * *", () => {
+  var task = cron.schedule("30 0 * * *", async () => {
     console.log("------------------");
     console.log("deleting old access logs");
     fs.unlink(`${accessLogPath}`, (err) => {
       if (err) throw err;
       console.log("Access log deleted");
     });
-    fs.rmdir(`${backupPath}`, (err) => {
-      if (err) throw err;
-      console.log("Access log deleted");
-    });
+    try {
+      // Read all files in the backup folder
+      const files = await readdir(backupPath);
+      console.log(files);
+
+      // Delete each file
+      await Promise.all(
+        files.map((file) => {
+          unlink(`${backupPath}${file}`);
+        })
+      );
+
+      // Remove the empty backup folder
+      await rmdir(backupPath);
+
+      console.log("Access logs deleted");
+    } catch (err) {
+      console.error("Error deleting access logs:", err);
+      throw err;
+    }
   });
   task.start();
 };

@@ -35,7 +35,7 @@ export const user_error_codes = {
   },
   ACCOUNT_NOT_VERIFIED: {
     statusCode: 400,
-    message: "Account is not verified",
+    message: "Account is not verified. Please check your email.",
   },
   EMAIL_NOT_EXIST: {
     statusCode: 400,
