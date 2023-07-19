@@ -181,7 +181,7 @@ Below is the list of APIs that the client website uses:
 
 #### Register new users
 
-- **Endpoint:** `/registerUser`
+- **Endpoint:** `user/registerUser`
 - **Method:** POST
 - **Description:** Registers new users
 - **Request:** `{name, email, password}`
@@ -195,7 +195,7 @@ Below is the list of APIs that the client website uses:
 
 #### Login new users
 
-- **Endpoint:** `/loginUser`
+- **Endpoint:** `user/loginUser`
 - **Method:** POST
 - **Description:** Logs in verified users
 - **Request:** `{email, password}`
@@ -218,7 +218,7 @@ Below is the list of APIs that the client website uses:
 
 #### Password Forgot (Forgot Password)
 
-- **Endpoint:** `/forgotPassword`
+- **Endpoint:** `user/forgotPassword`
 - **Method:** POST
 - **Description:** Resets user's password
 - **Request:** `{email}`
@@ -240,7 +240,7 @@ Below is the list of APIs that the client website uses:
 
 #### Password Reset (Reset Password)
 
-- **Endpoint:** `/resetPassword`
+- **Endpoint:** `user/resetPassword`
 - **Method:** POST
 - **Description:** Resets user's password
 - **Request:** `{old_password, new_password}`
@@ -254,7 +254,7 @@ Below is the list of APIs that the client website uses:
 
 #### Logout users
 
-- **Endpoint:** `/logoutUser`
+- **Endpoint:** `user/logoutUser`
 - **Method:** POST
 - **Description:** Logs out users
 - **Response:**
@@ -267,7 +267,7 @@ Below is the list of APIs that the client website uses:
 
 #### Checks blacklist for tokens
 
-- **Endpoint:** `/checkBlacklist`
+- **Endpoint:** `user/checkBlacklist`
 - **Method:** POST
 - **Description:** Checks the cache for blacklisted authorization tokens
 - **Response:**
@@ -288,10 +288,10 @@ Below is the list of APIs that the client website uses:
 
 #### Buy crypto, ETH or BTC
 
-- **Endpoint:** `/buy`
+- **Endpoint:** `trade/buy`
 - **Method:** POST
 - **Description:** Users buy either ETH or BTC coins using their virtual USD
-- **Request:** `{coin_currency, current_price, coin_amount, request_header}`
+- **Request:** `{coin_currency, current_price, coin_amount, input_amount request_header}`
 - **Response:**
 
 ```json
@@ -310,7 +310,7 @@ Below is the list of APIs that the client website uses:
 
 #### Sell crypto, ETH or BTC
 
-- **Endpoint:** `/sell`
+- **Endpoint:** `trade/sell`
 - **Method:** POST
 - **Description:** Users sell their own ETH or BTC and earn virtual USD
 - **Request:** `{coin_currency, current_selling_price, coin_amount, request_header}`
@@ -334,7 +334,7 @@ Below is the list of APIs that the client website uses:
 
 #### Deposit money into USD wallet
 
-- **Endpoint:** `/walletDeposit`
+- **Endpoint:** `wallet/walletDeposit`
 - **Method:** POST
 - **Description:** Users can deposit any amount into the wallet
 - **Request:** `{request_header, amount}`
@@ -351,43 +351,102 @@ Below is the list of APIs that the client website uses:
 
 #### Withdraw money from USD wallet
 
-- **Endpoint:** `/walletWithdraw`
+- **Endpoint:** `wallet/walletWithdraw`
 - **Method:** POST
 - **Description:** Users can withdraw any amount from the wallet
 - **Request:** `{request_header, amount}`
-- **Response:** Similar to [deposit](#deposit-money-into-usd-wallet)
+- **Response:**
+
+```json
+{
+  "message": "WITHDRAW_SUCCESS",
+  "details": {
+    "balance": 9000
+  }
+}
+```
 
 #### Get wallet transaction history
 
-- **Endpoint:** `/walletTransaction`
+- **Endpoint:** `wallet/walletTransaction`
 - **Method:** GET
 - **Description:** Retrieves all of user's deposit and withdrawal history
 - **Request:** Req.headers
+- **Response:**
 
 ```json
 {
   "message": "SUCCESS",
-  "details": {
-    "balance": 60000
-  }
+  "details": [
+    {
+      "dwt_id": 2,
+      "wallet_id": 1,
+      "dwt_type": "withdraw",
+      "dwt_amount": "1000.00",
+      "dwt_before": "10000.00",
+      "dwt_after": "9000.00",
+      "created_at": "2023-07-19T04:31:57.776Z"
+    },
+    {
+      "dwt_id": 1,
+      "wallet_id": 1,
+      "dwt_type": "deposit",
+      "dwt_amount": "10000.00",
+      "dwt_before": "0.00",
+      "dwt_after": "10000.00",
+      "created_at": "2023-07-19T04:23:13.979Z"
+    }
+  ]
 }
 ```
 
 #### Get wallet balance
 
-- **Endpoint:** `/currentWalletBalance`
+- **Endpoint:** `wallet/currentWalletBalance`
 - **Method:** GET
 - **Description:** Returns the current wallet balance
 - **Request:** Req.headers
+- **Response:**
+
+```json
+{
+  "message": "SUCCESS",
+  "details": {
+    "USD": 9000,
+    "BTC": 0,
+    "ETH": 0
+  }
+}
+```
 
 ## Transaction API Endpoints
 
 #### Get all buy and sell transactions
 
-- **Endpoint:** `/getAllTransactions`
+- **Endpoint:** `transaction/getAllTransactions`
 - **Method:** GET
 - **Description:** Retrieve all the buy and sell orders
 - **Request:** Request.headers
+- **Response:**
+
+```json
+{
+  "message": "SUCCESS",
+  "details": [
+    {
+      "transaction_id": 2,
+      "wallet_id": 3,
+      "user_id": 1,
+      "transaction_amount": 9.5,
+      "coin_amount": 1,
+      "commission_deduction_5": 0.5,
+      "currency": "ETH",
+      "trade_type": "sell",
+      "transaction_date": "2023-07-19T06:06:24.837Z"
+    }
+  ]
+}
+```
 
 ## P2P API Endpoints
 
@@ -552,3 +611,191 @@ Below is the list of APIs that the client website uses:
 ```
 
 Please refer to the documentation for detailed information on each API endpoint and their usage.
+
+# Project Dependencies
+
+### googleapis
+
+**Description:** This package allows the server to upload data into Google Drive to serve as a backup.
+
+**Example of usage:**
+```javascript
+// Authorize the server to interact with Google API
+const auth = new google.auth.JWT(
+  crypthub_backup.client_email,
+  null,
+  crypthub_backup.private_key,
+  ["https://www.googleapis.com/auth/drive"]
+);
+```
+
+### node-cron
+
+**Description:** This package enables the server to perform certain functionalities at scheduled intervals (e.g., every set seconds, minutes, hours, etc.).
+
+**Example of usage:**
+```javascript
+// Backup the database every 24 hours
+function cronBackup24hr() {
+  const task = cron.schedule("0 0 0 * * *", () => {
+    dumpDB();
+    backupData();
+  });
+  task.start();
+}
+```
+
+### bcrypt
+
+**Description:** This package provides password hashing functionality to the server.
+
+**Example of usage:**
+```javascript
+// Compare whether a password matches a hashed password
+const matching = await bcrypt.compare(received_password, actual_password);
+```
+
+### body-parser
+
+**Description:** This package allows parsing of incoming JSON data from the request body and adds the resulting JSON object to the `req.body` property.
+
+**Example of usage:**
+```javascript
+// Parsing incoming JSON data
+app.use(bodyParser.json());
+```
+
+### dotenv
+
+**Description:** This package allows loading of environment variables from a `.env` file into the server's application `process.env` object.
+
+**Example of usage:**
+```javascript
+// Accessing environment variables from process.env
+const env = process.env;
+```
+
+### ejs
+
+**Description:** This package enables the server to embed JavaScript code inside HTML templates for dynamic content generation.
+
+**Example of usage:**
+```javascript
+// Setting ejs as the view engine
+app.set("view engine", "ejs");
+```
+# Project Dependencies
+
+### express
+
+**Description:** This package allows the runtime environment for executing JavaScript outside of a web browser. It is a web application framework for Node.js.
+
+**Example of usage:**
+```javascript
+// Creating an instance of Express.js application
+const app = express();
+```
+
+### ioredis
+
+**Description:** This package enables the server to work with Redis, an in-memory data store.
+
+**Example of usage:**
+```javascript
+// Adding a token to the blacklist
+function blacklist(logout_token) {
+  redisClient.zadd("blacklisted", Date.now(), logout_token);
+}
+```
+
+### jsonwebtoken
+
+**Description:** This package allows the creation of tokens to securely transmit information between the client and the server. It is commonly used for user authentication and authorization.
+
+**Example of usage:**
+```javascript
+// Create a token that holds user’s email and id that expires in 24 hours
+let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
+  expiresIn: "24h",
+});
+```
+
+### nodemailer
+
+**Description:** This package allows the server to send email messages.
+
+**Example of usage:**
+```javascript
+// Setting up the sender’s (server) information to send email using Gmail as a service
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: env.GOOGLE_EMAIL,
+    pass: env.GOOGLE_PASSWORD,
+  },
+});
+```
+
+### pg
+
+**Description:** This package allows the server to interact with PostgreSQL, a relational database.
+
+**Example of usage:**
+```javascript
+// Connecting the Node.js container with the PostgreSQL container
+import pg from "pg";
+const { Pool } = pg;
+import config from "../app_config.js";
+const db_config = config.db;
+const connectionString =
+  "postgresql://" +
+  db_config.user +
+  ":" +
+  db_config.password +
+  "@" +
+  db_config.host +
+  ":" +
+  db_config.port +
+  "/" +
+  db_config.database;
+const pool = new Pool({ connectionString });
+```
+
+### morgan
+
+**Description:** This package allows logging of incoming HTTP requests and responses in the application.
+
+**Example of usage:**
+```javascript
+// Show incoming requests in the console
+app.use(morgan('dev'));
+```
+
+### nodemon
+
+**Description:** This package automatically restarts the `server.js` application whenever changes are detected in the source code. 
+
+
+Please make sure to install these packages as dependencies using npm or yarn before running the application. You can find more information about each package in their respective documentation. 
+
+# Backup Functionality
+
+The server is equipped with an automated backup feature that securely stores essential data in Google Drive. This process involves creating a folder named "Crypthub Backup - {current date}"
+
+![Crypthub_Backup_Folder](./app/assets/Backupfolder.png)
+
+Organizing all relevant data inside this folder.
+
+![Crypthub_Backup_Files](./app/assets/Backupfiles.png)
+
+The backed-up data includes the following details:
+
+1. **PostgreSQL Backup** - `backup.sql`:
+   - Description: This file is generated using `pg_dumpall` and contains comprehensive information and data from the PostgreSQL database.
+   - Purpose: The PostgreSQL backup ensures the preservation of all crucial database content.
+
+2. **Access Log File** - `access-log.log`:
+   - Description: The `access-log.log` file meticulously logs all server activities, such as incoming requests, responses, errors, and other relevant events.
+   - Purpose: The access log file provides a detailed record of the server's functioning and assists in troubleshooting and monitoring server performance.
+
+The backup process ensures that critical data is safeguarded and can be easily restored in case of unexpected data loss or system failure. The automated backup routine guarantees the continuity and resilience of the server's data.
