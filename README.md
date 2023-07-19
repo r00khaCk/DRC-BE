@@ -1,15 +1,19 @@
 # DRC-BE component
 
-Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto trading website which offers two main services which is a Peer-to-Peer (P2P) and a real-time trading market.
+Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto trading platform which offers two main services which is a Peer-to-Peer (P2P) marketplace and a real-time trading market.
 
 # Table of Content
 
-- [Server components](#server-components)
-- [Scripts](#scripts)
-- [Ports](#ports)
+- [Crypthub Server](#crypthub-server)
+  - [Entity Relational Diagram](#crypthub-entity-relational-diagram-erd)
+  - [Server components](#server-components)
+  - [Backend System Flow](#crypthub-backend-system-flow)
+  - [Scripts](#scripts)
+    - [clearUnusedImages.sh](#clearunusedimagessh)
+    - [initialSetup.sh](#initialsetupsh)
+    - [update.sh](#updatesh)
+  - [Port Configuration](#ports)
 - [API](#apis-application-programming-interfaces)
-- [Entity Relational Diagram](#crypthub-entity-relational-diagram-erd)
-- [Backend System Flow](#crypthub-backend-system-flow)
 
 # Crypthub Server
 
@@ -40,22 +44,123 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 
 ## Scripts:
 
-- `clearUnusedImages.sh`:
+### `clearUnusedImages.sh`:
 
-  - The script is used to remove unused docker images.
-  - run the script using `./clearUnusedImages.sh`.
+- The script is used to remove unused docker images for maintainence.
 
-- `initialSetup.sh`:
+```bash
+#!/bin/bash
 
-  - Run this script during the initial setup:
-    - Add an ssh-agent.
-    - Executes `git pull origin main` to get the latest version of the server.
-    - Starts the docker containers.
+cd ../DRC-BE/
 
-- `update.sh`:
-  - This script is executed using `crontab` to automatically pull the changes from the main branch for the purpose of getting changes.
+#shut down docker containers
+docker compose down --volumes &&
 
-## Ports:
+# remove any unused images
+# Get the image IDs
+unused_image_ids=$(docker images |grep none| awk '{print $3}')
+# Counter for removed images
+removed=0
+# Loop through the image IDs and remove the images
+for id in $unused_image_ids; do
+    docker rmi $id &&
+    removed=$((removed + 1)) &&
+    if [ $unused_image_ids -eq 0 ]; then
+        break
+    fi &&
+done &&
+echo "Images removed: $removed"
+```
+
+### `initialSetup.sh`:
+
+- Run this script during the initial setup. Similar to the [update.sh](#updatesh).
+
+```bash
+#!/bin/bash
+
+# pull the updates
+error_message="Please make sure you have the correct access rights and the repository exists."
+success_message="Already up to date."
+
+
+cd /root/DRC-BE/
+eval "$(ssh-agent -s)" && ssh-add [path to private key] &&
+pull_command=$(git pull origin main) &&
+echo "In $(pwd)"
+if echo "$pull_command" | grep -q "$error_message"; then
+        eval "$(ssh-agent -s)" && ssh-add [path to private key] && ssh-add -l &&
+        $pull_command
+        exit 1
+elif echo "$pull_command" | grep -q "$success_message"; then
+        echo "Pull successful"
+fi
+
+# install dependencies
+npm i && cd app/ && npm i && cd ..
+
+# stop and remove containers
+docker compose down --volumes &&
+
+# start the containers
+docker compose up --build -d &&
+
+# run the data back up script
+export OPENSSL_CONF=/dev/null &&
+echo "cron running.."
+node cronBackup.js
+```
+
+### `update.sh`:
+
+- This script will be executed automatically every Friday @ 00:00 using cron jobs for the purpose of pulling latest updates.
+- The script will first stop and remove all the containers, activate the ssh agent and add the private key, pull the latests changes from Github, install dependencies, start the container as well as execute the `cronBackup.js`
+
+```bash
+#!/bin/bash
+# Script is run when there is an update in the main while the server is running
+cd /root/DRC-BE/
+
+# stops all the running containers
+running_containers=(add container names)
+
+for container in "${running_containers[@]}"; do
+    docker stop "$container"
+    echo "$container stopped"
+done && echo "All containers stopped successfully" &&
+
+# down the containers
+docker compose down --volumes &&
+
+# pull the updates
+error_message="Please make sure you have the correct access rights and the repository exists."
+success_message="Already up to date."
+
+eval "$(ssh-agent -s)" && ssh-add [path to private key] &&
+pull_command=$(git pull origin main) &&
+echo "In $(pwd)"
+if echo "$pull_command" | grep -q "$error_message"; then
+        eval "$(ssh-agent -s)" && ssh-add [path to private key] && ssh-add -l &&
+        $pull_command
+        exit 1
+elif echo "$pull_command" | grep -q "$success_message"; then
+        echo "Pull successful"
+fi
+
+# install dependencies
+cd /root/DRC-BE/app/ && npm i && cd ..
+
+# run the containers
+docker compose up --build -d &&
+
+# run the data back up script
+export OPENSSL_CONF=/dev/null &&
+echo "cron running.."
+node cronBackup.js
+
+```
+
+## Port Configuration:
 
 If error appears such as this: <br>
 `listen tcp4 0.0.0.0:[PORT]: bind: address already in use.` <br>
@@ -66,9 +171,7 @@ Resolve the issue by using the follwoing commands:
 - `sudo kill -9 [PID]`:
   - Run to kill anything with the given PID running on the port <br>
 
-## APIs (Application Programming Interfaces)
-
----
+# APIs (Application Programming Interfaces)
 
 Below is the list of APIs that the client website uses:
 
