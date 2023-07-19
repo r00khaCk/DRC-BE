@@ -81,7 +81,8 @@ export const sendVerificationEmailModel = async (userDetails, callback) => {
 
       subject: "Email Verification",
 
-      text: `Hi there dear customer,\nPlease click on this link to verify your account\n${env.HOST_URL}/user/verify/${verificationToken}?email=${email}`,
+      text: `Dear valued customer,\nThank you for choosing CryptHub! We kindly request you to verify your account by clicking on the following link:\n${env.HOST_URL}/user/verify/${verificationToken}?email=${email}\nIf you have any questions or need assistance, please don't hesitate to contact our support team.\nBest regards,\n
+      The CryptHub Team`,
     };
 
     senderClient.sendMail(verificationEmailTemplate, (error, info) => {
