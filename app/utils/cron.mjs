@@ -49,9 +49,9 @@ export const backupAccessLog = () => {
   task.start();
 };
 
-// clears the access logs at 00:30 daily
+// clears the access logs at 00:30 every Friday
 export const deleteAccessLog = () => {
-  var task = cron.schedule("30 0 * * *", async () => {
+  var task = cron.schedule("30 */24 * * *", async () => {
     console.log("------------------");
     console.log("deleting old access logs");
     await unlink(accessLogPath, (err) => {
