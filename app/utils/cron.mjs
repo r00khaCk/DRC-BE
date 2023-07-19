@@ -29,9 +29,9 @@ function redisClearCache() {
   redisClient.zremrangebyscore("blacklisted", 0, time);
 }
 
-// backups the access logs every 30 minutes
+// backups the access logs every 3 hours
 export const backupAccessLog = () => {
-  var task = cron.schedule("30 * * * *", () => {
+  var task = cron.schedule("0 */3 * * *", () => {
     let timestamp = Date.now();
     console.log("---------------------------------------");
     console.log("Access log backup");
