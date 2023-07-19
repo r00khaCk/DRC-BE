@@ -41,7 +41,7 @@ app.use((req, res, next) => {
     req.headers.origin !== allowedOrigin &&
     req.headers.host !== allowedHost
   ) {
-    res.status(403).send("FORBIDDEN");
+    res.status(403).render("forbidden");
   }
 
   res.header("Access-Control-Allow-Origin", "*");
