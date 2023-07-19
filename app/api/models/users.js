@@ -16,42 +16,45 @@ const redisClient = new Redis({
 
 // Register new account
 export const registerNewUserModel = async (registerDetails) => {
-  const { name, email, password } = registerDetails;
-  // storedEmail will fetch records where the email equals to the registerDetails email
-  let storedEmail = await database.connection.query(
-    "SELECT * FROM crypthubschema.users WHERE email=$1",
-    [email]
-  );
-  // storedEmail.rows.length returns the length of the rows
-  // if storedEmail.rows.length is > 0 means that there is a duplicate email in the db
-  if (storedEmail.rows.length) {
-    throw new CustomError("DUPLICATE_EMAIL");
-  } else {
-    bcrypt.hash(password, 10, async (err, hash) => {
-      if (err) {
-        // return "PASSWORD_HASHING_ERROR";
-        console.log(err);
-        throw new CustomError("PASSWORD_HASHING_ERROR");
+  try {
+    const { name, email, password } = registerDetails;
+    // storedEmail will fetch records where the email equals to the registerDetails email
+    let storedEmail = await database.connection.query(
+      "SELECT * FROM crypthubschema.users WHERE email=$1",
+      [email]
+    );
+    const hashPassword = await bcrypt.hash(password, 10);
+    // Check if email, name, and password are true
+    if (name && email && hashPassword) {
+      let values = [name, email, hashPassword, 0];
+      let values2 = [name, hashPassword, email];
+      let query_register;
+      if (storedEmail.rows.length == 0) {
+        query_register = await database.connection.query(
+          "INSERT INTO crypthubschema.users (name,email,password,account_verified) VALUES($1,$2,$3,$4) RETURNING *",
+          values
+        );
+        if (query_register.rows.length == 0)
+          throw new CustomError("REGISTER_QUERY_FAILED");
+        addUserWallets(email);
+      } else if (storedEmail.rows[0].account_verified == false) {
+        query_register = await database.connection.query(
+          "UPDATE crypthubschema.users SET name = $1, password = $2 WHERE email = $3 RETURNING *",
+          values2
+        );
+        if (query_register.rows.length == 0)
+          throw new CustomError("REGISTER_QUERY_FAILED");
+      } else if (storedEmail.rows[0].account_verified == true) {
+        throw new CustomError("DUPLICATE_EMAIL");
       } else {
-        let hashPassword = hash;
-        // Check if email, name, and password are true
-        if (name && email && hashPassword) {
-          let values = [name, email, hashPassword, 0];
-          try {
-            await database.connection.query(
-              "INSERT INTO crypthubschema.users (name,email,password,account_verified) VALUES($1,$2,$3,$4) RETURNING *",
-              values
-            );
-            addUserWallets(email);
-          } catch (error) {
-            console.log(error);
-            throw new CustomError("REGISTER_QUERY_FAILED");
-          }
-        } else {
-          throw new CustomError("BAD_REQUEST");
-        }
+        throw new CustomError("REGISTER_QUERY_FAILED");
       }
-    });
+    } else {
+      throw new CustomError("BAD_REQUEST");
+    }
+  } catch (error) {
+    console.log(error);
+    throw error;
   }
 };
 
@@ -219,7 +222,7 @@ export async function loginUser(login_details) {
 
     if (matching) {
       let query_result = await database.connection.query(
-        "UPDATE crypthubschema.users SET last_login = to_timestamp($1) RETURNING *",
+        `UPDATE crypthubschema.users SET last_login = to_timestamp($1) WHERE email = '${user_email}' RETURNING *`,
         [Date.now() / 1000]
       );
       if (query_result.rows.length == 0)
