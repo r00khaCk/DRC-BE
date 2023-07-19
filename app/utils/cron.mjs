@@ -9,7 +9,6 @@ const accessLogPath = "/usr/src/app/api/middleware/logger/access.log";
 
 const readdir = promisify(fs.readdir);
 const unlink = promisify(fs.unlink);
-const rmdir = promisify(fs.rmdir);
 
 const redisClient = new Redis({
   host: "redis",
@@ -55,10 +54,19 @@ export const deleteAccessLog = () => {
   var task = cron.schedule("30 0 * * *", async () => {
     console.log("------------------");
     console.log("deleting old access logs");
-    fs.unlink(`${accessLogPath}`, (err) => {
+    await unlink(accessLogPath, (err) => {
       if (err) throw err;
       console.log("Access log deleted");
+
+      fs.writeFile(accessLogPath, "", (err) => {
+        if (err) {
+          console.error("Error creating new access log file:", err);
+        } else {
+          console.log("New access log file created");
+        }
+      });
     });
+
     try {
       // Read all files in the backup folder
       const files = await readdir(backupPath);
