@@ -14,6 +14,8 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
     - [update.sh](#updatesh)
   - [Port Configuration](#ports)
 - [API](#apis-application-programming-interfaces)
+- [Project Dependencies](#project-dependencies)
+- [Backup Functionality](#backup-functionality)
 
 # Crypthub Server
 
@@ -619,6 +621,7 @@ Please refer to the documentation for detailed information on each API endpoint 
 **Description:** This package allows the server to upload data into Google Drive to serve as a backup.
 
 **Example of usage:**
+
 ```javascript
 // Authorize the server to interact with Google API
 const auth = new google.auth.JWT(
@@ -634,6 +637,7 @@ const auth = new google.auth.JWT(
 **Description:** This package enables the server to perform certain functionalities at scheduled intervals (e.g., every set seconds, minutes, hours, etc.).
 
 **Example of usage:**
+
 ```javascript
 // Backup the database every 24 hours
 function cronBackup24hr() {
@@ -650,6 +654,7 @@ function cronBackup24hr() {
 **Description:** This package provides password hashing functionality to the server.
 
 **Example of usage:**
+
 ```javascript
 // Compare whether a password matches a hashed password
 const matching = await bcrypt.compare(received_password, actual_password);
@@ -660,6 +665,7 @@ const matching = await bcrypt.compare(received_password, actual_password);
 **Description:** This package allows parsing of incoming JSON data from the request body and adds the resulting JSON object to the `req.body` property.
 
 **Example of usage:**
+
 ```javascript
 // Parsing incoming JSON data
 app.use(bodyParser.json());
@@ -670,6 +676,7 @@ app.use(bodyParser.json());
 **Description:** This package allows loading of environment variables from a `.env` file into the server's application `process.env` object.
 
 **Example of usage:**
+
 ```javascript
 // Accessing environment variables from process.env
 const env = process.env;
@@ -680,10 +687,12 @@ const env = process.env;
 **Description:** This package enables the server to embed JavaScript code inside HTML templates for dynamic content generation.
 
 **Example of usage:**
+
 ```javascript
 // Setting ejs as the view engine
 app.set("view engine", "ejs");
 ```
+
 # Project Dependencies
 
 ### express
@@ -691,6 +700,7 @@ app.set("view engine", "ejs");
 **Description:** This package allows the runtime environment for executing JavaScript outside of a web browser. It is a web application framework for Node.js.
 
 **Example of usage:**
+
 ```javascript
 // Creating an instance of Express.js application
 const app = express();
@@ -701,6 +711,7 @@ const app = express();
 **Description:** This package enables the server to work with Redis, an in-memory data store.
 
 **Example of usage:**
+
 ```javascript
 // Adding a token to the blacklist
 function blacklist(logout_token) {
@@ -713,6 +724,7 @@ function blacklist(logout_token) {
 **Description:** This package allows the creation of tokens to securely transmit information between the client and the server. It is commonly used for user authentication and authorization.
 
 **Example of usage:**
+
 ```javascript
 // Create a token that holds user’s email and id that expires in 24 hours
 let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
@@ -725,6 +737,7 @@ let token = jwt.sign({ email: user_email, id: user_id }, env.SECRET_KEY, {
 **Description:** This package allows the server to send email messages.
 
 **Example of usage:**
+
 ```javascript
 // Setting up the sender’s (server) information to send email using Gmail as a service
 const transporter = nodemailer.createTransport({
@@ -741,6 +754,7 @@ const transporter = nodemailer.createTransport({
 **Description:** This package allows the server to interact with PostgreSQL, a relational database.
 
 **Example of usage:**
+
 ```javascript
 // Connecting the Node.js container with the PostgreSQL container
 import pg from "pg";
@@ -766,17 +780,17 @@ const pool = new Pool({ connectionString });
 **Description:** This package allows logging of incoming HTTP requests and responses in the application.
 
 **Example of usage:**
+
 ```javascript
 // Show incoming requests in the console
-app.use(morgan('dev'));
+app.use(morgan("dev"));
 ```
 
 ### nodemon
 
-**Description:** This package automatically restarts the `server.js` application whenever changes are detected in the source code. 
+**Description:** This package automatically restarts the `server.js` application whenever changes are detected in the source code.
 
-
-Please make sure to install these packages as dependencies using npm or yarn before running the application. You can find more information about each package in their respective documentation. 
+Please make sure to install these packages as dependencies using npm or yarn before running the application. You can find more information about each package in their respective documentation.
 
 # Backup Functionality
 
@@ -791,6 +805,7 @@ Organizing all relevant data inside this folder.
 The backed-up data includes the following details:
 
 1. **PostgreSQL Backup** - `backup.sql`:
+
    - Description: This file is generated using `pg_dumpall` and contains comprehensive information and data from the PostgreSQL database.
    - Purpose: The PostgreSQL backup ensures the preservation of all crucial database content.
 
