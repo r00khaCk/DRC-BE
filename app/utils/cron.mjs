@@ -62,7 +62,6 @@ export const deleteAccessLog = () => {
     try {
       // Read all files in the backup folder
       const files = await readdir(backupPath);
-      console.log(files);
 
       // Delete each file
       await Promise.all(
