@@ -38,6 +38,8 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 
 - [Nginx](https://www.nginx.com/): A high-performance web server and reverse proxy server that excels at serving static content, handling high traffic loads, and efficiently distributing incoming requests to backend servers.
 
+- [Docker](https://www.docker.com/): Docker is an open-source platform that enables developers to automate application deployment and management using containers. Containers are lightweight, isolated environments that package applications and their dependencies, providing consistent and portable execution across different machines. Docker offers benefits such as portability, scalability, efficiency, and isolation, making it easier to develop, deploy, and manage applications.
+
 ### **Crypthub Backend System Flow**
 
 ![Backend System Diagram](./app/assets/Crypthub-System-Flow.png)
@@ -46,7 +48,7 @@ Back-end server for [Crypthub](https://crypthub-app.vercel.app). A crypto tradin
 
 ### `clearUnusedImages.sh`:
 
-- The script is used to remove unused docker images for maintainence.
+- The script is used to remove unused docker images for maintenance.
 
 ```bash
 #!/bin/bash
